@@ -6,17 +6,21 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import threading
 from ultralytics import YOLO
-from ttkthemes import ThemedTk
 
-class CameraThread(threading.Thread):
-    def __init__(self, callback):
+# Thread riêng cho camera capture
+class CameraThread(QThread):
+    frame_ready = pyqtSignal(np.ndarray)
+
+    def __init__(self, camera_id=0):
         super().__init__()
         self.callback = callback
         self.running = False
         self.camera_id = 0
 
     def run(self):
-        cap = cv2.VideoCapture(self.camera_id)
+        # cap = cv2.VideoCapture(self.camera_id)
+        video_path = 'video_test/video.mp4'
+        cap = cv2.VideoCapture(video_path)
         self.running = True
         
         while self.running:
@@ -95,126 +99,45 @@ class BMDMachineControl:
         # Add status bar
         self.setup_status_bar()
 
-    def configure_styles(self):
-        # Configure colors
-        primary_color = "#2196F3"  # Material Blue
-        secondary_color = "#FFC107"  # Material Amber
-        success_color = "#4CAF50"  # Material Green
-        danger_color = "#F44336"  # Material Red
-        
-        # Tab style
-        self.style.configure('TNotebook.Tab', padding=[12, 8], font=('Helvetica', 10))
-        self.style.map('TNotebook.Tab',
-                      background=[('selected', primary_color), ('!selected', '#f0f0f0')],
-                      foreground=[('selected', 'white'), ('!selected', 'black')])
-        
-        # Button styles
-        self.style.configure('Primary.TButton',
-                           padding=[20, 10],
-                           font=('Helvetica', 10, 'bold'))
-        self.style.map('Primary.TButton',
-                      background=[('pressed', primary_color), ('active', primary_color)],
-                      foreground=[('pressed', 'white'), ('active', 'white')])
-        
-        # Success button style
-        self.style.configure('Success.TButton',
-                           padding=[20, 10],
-                           font=('Helvetica', 10, 'bold'))
-        self.style.map('Success.TButton',
-                      background=[('pressed', success_color), ('active', success_color)],
-                      foreground=[('pressed', 'white'), ('active', 'white')])
-        
-        # Danger button style
-        self.style.configure('Danger.TButton',
-                           padding=[20, 10],
-                           font=('Helvetica', 10, 'bold'))
-        self.style.map('Danger.TButton',
-                      background=[('pressed', danger_color), ('active', danger_color)],
-                      foreground=[('pressed', 'white'), ('active', 'white')])
-        
-        # Label styles
-        self.style.configure('Title.TLabel',
-                           font=('Helvetica', 16, 'bold'),
-                           padding=[0, 10])
-        
-        self.style.configure('Status.TLabel',
-                           font=('Helvetica', 10),
-                           padding=[5, 5])
+    def createFootMassageTab(self):
+        tab = QWidget()
 
-    def setup_massage_tab(self):
-        # Title
-        title = ttk.Label(self.massage_tab, 
-                         text="Điều khiển massage bấm huyệt",
-                         style='Title.TLabel')
-        title.pack(fill='x', pady=(0, 20))
+        # Màn hình bên trái và phải
+        self.left_display = QLabel()
+        self.left_display.setAlignment(Qt.AlignCenter)
+        self.left_display.setStyleSheet("background-color: #f0f0f0;")
+        self.left_display.setMinimumSize(320, 240)
         
-        # Create main content frame with two columns
-        content_frame = ttk.Frame(self.massage_tab)
-        content_frame.pack(fill='both', expand=True)
+        self.right_display = QLabel()
+        self.right_display.setAlignment(Qt.AlignCenter)
+        self.right_display.setStyleSheet("background-color: #a0a0a0;")
+        self.right_display.setMinimumSize(320, 240)
+
+        # Các control khác
+        routine_selection = QComboBox()
+        routine_selection.addItems(["Sốt, co giật", "Stress", "Thoát vị đĩa đệm", "Bổ thận tráng dương", "Nâng cao sức khỏe"])
+
+        self.start_button = QPushButton("Bắt đầu bấm huyệt")
+        self.start_button.setStyleSheet("background-color: #00ff00; color: black; font-weight: bold;")
+        self.start_button.setFixedHeight(100)
+        self.start_button.clicked.connect(self.start_massage)
         
-        # Left column - Display
-        display_frame = ttk.LabelFrame(content_frame, text="Hiển thị camera", padding="10")
-        display_frame.pack(side='left', fill='both', expand=True, padx=(0, 10))
-        
-        # Camera displays with borders and shadows
-        self.left_display = ttk.Label(display_frame, relief='solid', borderwidth=1)
-        self.left_display.pack(fill='both', expand=True, padx=5, pady=5)
-        
-        self.right_display = ttk.Label(display_frame, relief='solid', borderwidth=1)
-        self.right_display.pack(fill='both', expand=True, padx=5, pady=5)
-        
-        # Right column - Controls
-        control_frame = ttk.LabelFrame(content_frame, text="Điều khiển", padding="10")
-        control_frame.pack(side='right', fill='y', padx=(10, 0))
-        
-        # Routine selection with better styling
-        ttk.Label(control_frame, text="Chọn bài bấm huyệt:",
-                 font=('Helvetica', 10, 'bold')).pack(fill='x', pady=(0, 5))
-        
-        routines = ["Sốt, co giật", "Stress", "Thoát vị đĩa đệm", 
-                   "Bổ thận tráng dương", "Nâng cao sức khỏe"]
-        self.routine_var = tk.StringVar()
-        routine_combo = ttk.Combobox(control_frame, 
-                                   textvariable=self.routine_var,
-                                   values=routines,
-                                   width=30)
-        routine_combo.pack(fill='x', pady=(0, 20))
-        
-        # Medicine control group
-        medicine_frame = ttk.LabelFrame(control_frame, text="Điều khiển dẫn dược", padding="10")
-        medicine_frame.pack(fill='x', pady=(0, 10))
-        
-        self.btn_on_medicine = CustomButton(medicine_frame, 
-                                          text="Bật dẫn dược",
-                                          style='Success.TButton',
-                                          command=self.toggle_medicine)
-        self.btn_on_medicine.pack(fill='x', pady=2)
-        
-        self.btn_off_medicine = CustomButton(medicine_frame, 
-                                           text="Tắt dẫn dược",
-                                           style='Danger.TButton',
-                                           command=self.toggle_medicine)
-        self.btn_off_medicine.pack(fill='x', pady=2)
-        
-        # Herb control group
-        herb_frame = ttk.LabelFrame(control_frame, text="Điều khiển dược liệu", padding="10")
-        herb_frame.pack(fill='x', pady=(0, 10))
-        
-        self.btn_on_herb = CustomButton(herb_frame, 
-                                      text="Đốt dược liệu",
-                                      style='Success.TButton',
-                                      command=self.toggle_herb)
-        self.btn_on_herb.pack(fill='x', pady=2)
-        
-        self.btn_off_herb = CustomButton(herb_frame, 
-                                       text="Tắt đốt dược liệu",
-                                       style='Danger.TButton',
-                                       command=self.toggle_herb)
-        self.btn_off_herb.pack(fill='x', pady=2)
-        
-        # Main control buttons
-        control_buttons_frame = ttk.Frame(control_frame)
-        control_buttons_frame.pack(fill='x', pady=20)
+        self.stop_button = QPushButton("Dừng máy")
+        self.stop_button.setStyleSheet("background-color: #ff0000; color: black; font-weight: bold;")
+        self.stop_button.clicked.connect(self.stop_massage)
+
+        self.btn_on_medicine = QPushButton("Bật dẫn dược")
+        self.btn_off_medicine = QPushButton("Tắt dẫn dược")
+        self.btn_on_herb = QPushButton("Đốt dược liệu")
+        self.btn_off_herb = QPushButton("Tắt đốt dược liệu")
+
+        self.btn_on_medicine.clicked.connect(self.toggle_medicine)
+        self.btn_off_medicine.clicked.connect(self.toggle_medicine)
+        self.btn_on_herb.clicked.connect(self.toggle_herb)
+        self.btn_off_herb.clicked.connect(self.toggle_herb)
+
+        self.status_display = QLabel("Đang chờ...")
+        self.status_display.setAlignment(Qt.AlignCenter)
         
         self.start_button = CustomButton(control_buttons_frame, 
                                        text="Bắt đầu bấm huyệt",
@@ -290,10 +213,12 @@ class BMDMachineControl:
             except Exception as e:
                 print(f"Error processing frame: {e}")
         else:
-            image = Image.fromarray(frame)
-            photo = ImageTk.PhotoImage(image)
-            self.left_display.configure(image=photo)
-            self.left_display.image = photo
+            # Hiển thị frame gốc nếu không trong trạng thái xử lý
+            height, width, channel = frame.shape
+            bytes_per_line = 3 * width
+            q_img = QImage(frame.data, width, height, bytes_per_line, QImage.Format_RGB888)
+            self.left_display.setPixmap(QPixmap.fromImage(q_img).scaled(
+                self.left_display.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     def start_massage(self):
         self.is_processing = True
@@ -360,74 +285,6 @@ def main():
         root.mainloop()
     except Exception as e:
         print(f"Error starting application: {e}")
-
-def create_splash_screen(parent):
-    """Create a splash screen while the application loads"""
-    splash = tk.Toplevel(parent)
-    splash.title("")
-    splash.geometry("400x300")
-    splash.overrideredirect(True)  # Remove window decorations
-    
-    # Center splash screen
-    center_window(splash)
-    
-    # Create content
-    frame = ttk.Frame(splash, padding="20")
-    frame.pack(fill='both', expand=True)
-    
-    # Add logo or title
-    title = ttk.Label(frame, 
-                     text="BMD Machine Control",
-                     font=('Helvetica', 20, 'bold'))
-    title.pack(pady=(50,20))
-    
-    # Add version
-    version = ttk.Label(frame,
-                       text="Version 3.5",
-                       font=('Helvetica', 12))
-    version.pack()
-    
-    # Add loading message
-    loading = ttk.Label(frame,
-                       text="Đang khởi động...",
-                       font=('Helvetica', 10))
-    loading.pack(pady=(50,0))
-    
-    # Add progress bar
-    progress = ttk.Progressbar(frame, mode='indeterminate')
-    progress.pack(fill='x', pady=(20,0))
-    progress.start()
-    
-    return splash
-
-def center_window(window):
-    """Center a tkinter window on the screen"""
-    window.update_idletasks()
-    width = window.winfo_width()
-    height = window.winfo_height()
-    x = (window.winfo_screenwidth() // 2) - (width // 2)
-    y = (window.winfo_screenheight() // 2) - (height // 2)
-    window.geometry(f'{width}x{height}+{x}+{y}')
-
-class FootAcupointDetector:
-    """Placeholder class for foot acupoint detection"""
-    def __init__(self, model_path):
-        self.model = YOLO(model_path) if model_path else None
-
-    def detect_acupoints(self, frame):
-        """Detect acupoints in the given frame"""
-        if self.model:
-            # Add your actual detection logic here
-            return []
-        return []
-
-    def visualize_keypoints(self, frame, keypoints):
-        """Visualize detected keypoints on the frame"""
-        if keypoints:
-            for point in keypoints:
-                # Add your visualization logic here
-                pass
-        return frame
 
 if __name__ == "__main__":
     main()
