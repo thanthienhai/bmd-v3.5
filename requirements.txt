@@ -2,4 +2,6 @@ opencv-python
 numpy
 # smbus
 ultralytics
-PyQt5
+# PyQt5
+tk
+ttkthemes
