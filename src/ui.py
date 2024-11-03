@@ -98,6 +98,139 @@ class BMDMachineControl:
         # Add status bar
         self.setup_status_bar()
 
+    # def configure_styles(self):
+    #     # Configure colors
+    #     primary_color = "#2196F3"  # Material Blue
+    #     secondary_color = "#FFC107"  # Material Amber
+    #     success_color = "#4CAF50"  # Material Green
+    #     danger_color = "#F44336"  # Material Red
+        
+    #     # Tab style
+    #     self.style.configure('TNotebook.Tab', padding=[12, 8], font=('Helvetica', 10))
+    #     self.style.map('TNotebook.Tab',
+    #                   background=[('selected', primary_color), ('!selected', '#f0f0f0')],
+    #                   foreground=[('selected', 'white'), ('!selected', 'black')])
+        
+    #     # Button styles
+    #     self.style.configure('Primary.TButton',
+    #                        padding=[20, 10],
+    #                        font=('Helvetica', 10, 'bold'))
+    #     self.style.map('Primary.TButton',
+    #                   background=[('pressed', primary_color), ('active', primary_color)],
+    #                   foreground=[('pressed', 'white'), ('active', 'white')])
+        
+    #     # Success button style
+    #     self.style.configure('Success.TButton',
+    #                        padding=[20, 10],
+    #                        font=('Helvetica', 10, 'bold'))
+    #     self.style.map('Success.TButton',
+    #                   background=[('pressed', success_color), ('active', success_color)],
+    #                   foreground=[('pressed', 'white'), ('active', 'white')])
+        
+    #     # Danger button style
+    #     self.style.configure('Danger.TButton',
+    #                        padding=[20, 10],
+    #                        font=('Helvetica', 10, 'bold'))
+    #     self.style.map('Danger.TButton',
+    #                   background=[('pressed', danger_color), ('active', danger_color)],
+    #                   foreground=[('pressed', 'white'), ('active', 'white')])
+        
+    #     # Label styles
+    #     self.style.configure('Title.TLabel',
+    #                        font=('Helvetica', 16, 'bold'),
+    #                        padding=[0, 10])
+        
+    #     self.style.configure('Status.TLabel',
+    #                        font=('Helvetica', 10),
+    #                        padding=[5, 5])
+
+    # def setup_massage_tab(self):
+    #     # Title
+    #     title = ttk.Label(self.massage_tab, 
+    #                      text="Điều khiển massage bấm huyệt",
+    #                      style='Title.TLabel')
+    #     title.pack(fill='x', pady=(0, 20))
+        
+    #     # Create main content frame with two columns
+    #     content_frame = ttk.Frame(self.massage_tab)
+    #     content_frame.pack(fill='both', expand=True)
+        
+    #     # Left column - Display
+    #     display_frame = ttk.LabelFrame(content_frame, text="Hiển thị camera", padding="5")
+    #     display_frame.pack(side='left', fill='both', expand=True, padx=(0, 10))
+        
+    #     # Camera displays with borders and shadows
+    #     self.left_display = ttk.Label(display_frame, relief='solid', borderwidth=1)
+    #     self.left_display.pack(fill='both', expand=True, padx=5, pady=5)
+        
+    #     self.right_display = ttk.Label(display_frame, relief='solid', borderwidth=1)
+    #     self.right_display.pack(fill='both', expand=True, padx=5, pady=5)
+        
+    #     # Right column - Controls
+    #     control_frame = ttk.LabelFrame(content_frame, text="Điều khiển", padding="5")
+    #     control_frame.pack(side='right', fill='y', padx=(10, 0))
+        
+    #     # Routine selection with better styling
+    #     ttk.Label(control_frame, text="Chọn bài bấm huyệt:",
+    #              font=('Helvetica', 10, 'bold')).pack(fill='x', pady=(0, 5))
+        
+    #     routines = ["Sốt, co giật", "Stress", "Thoát vị đĩa đệm", 
+    #                "Bổ thận tráng dương", "Nâng cao sức khỏe"]
+    #     self.routine_var = tk.StringVar()
+    #     routine_combo = ttk.Combobox(control_frame, 
+    #                                textvariable=self.routine_var,
+    #                                values=routines,
+    #                                width=30)
+    #     routine_combo.pack(fill='x', pady=(0, 20))
+        
+    #     # Medicine control group
+    #     medicine_frame = ttk.LabelFrame(control_frame, text="Điều khiển dẫn dược", padding="5")
+    #     medicine_frame.pack(fill='x', pady=(0, 10))
+        
+    #     self.btn_on_medicine = CustomButton(medicine_frame, 
+    #                                       text="Bật dẫn dược",
+    #                                       style='Success.TButton',
+    #                                       command=self.toggle_medicine)
+    #     self.btn_on_medicine.pack(fill='x', pady=2)
+        
+    #     self.btn_off_medicine = CustomButton(medicine_frame, 
+    #                                        text="Tắt dẫn dược",
+    #                                        style='Danger.TButton',
+    #                                        command=self.toggle_medicine)
+    #     self.btn_off_medicine.pack(fill='x', pady=2)
+        
+    #     # Herb control group
+    #     herb_frame = ttk.LabelFrame(control_frame, text="Điều khiển dược liệu", padding="10")
+    #     herb_frame.pack(fill='x', pady=(0, 10))
+        
+    #     self.btn_on_herb = CustomButton(herb_frame, 
+    #                                   text="Đốt dược liệu",
+    #                                   style='Success.TButton',
+    #                                   command=self.toggle_herb)
+    #     self.btn_on_herb.pack(fill='x', pady=2)
+        
+    #     self.btn_off_herb = CustomButton(herb_frame, 
+    #                                    text="Tắt đốt dược liệu",
+    #                                    style='Danger.TButton',
+    #                                    command=self.toggle_herb)
+    #     self.btn_off_herb.pack(fill='x', pady=2)
+        
+    #     # Main control buttons
+    #     control_buttons_frame = ttk.Frame(control_frame)
+    #     control_buttons_frame.pack(fill='x', pady=20)
+        
+    #     self.start_button = CustomButton(control_buttons_frame, 
+    #                                    text="Bắt đầu bấm huyệt",
+    #                                    style='Success.TButton',
+    #                                    command=self.start_massage)
+    #     self.start_button.pack(fill='x', pady=2)
+        
+    #     self.stop_button = CustomButton(control_buttons_frame, 
+    #                                   text="Dừng máy",
+    #                                   style='Danger.TButton',
+    #                                   command=self.stop_massage)
+    #     self.stop_button.pack(fill='x', pady=2)
+    
     def configure_styles(self):
         # Configure colors
         primary_color = "#2196F3"  # Material Blue
@@ -105,130 +238,161 @@ class BMDMachineControl:
         success_color = "#4CAF50"  # Material Green
         danger_color = "#F44336"  # Material Red
         
-        # Tab style
-        self.style.configure('TNotebook.Tab', padding=[12, 8], font=('Helvetica', 10))
-        self.style.map('TNotebook.Tab',
-                      background=[('selected', primary_color), ('!selected', '#f0f0f0')],
-                      foreground=[('selected', 'white'), ('!selected', 'black')])
+        # Calculate dynamic sizes based on window width
+        def update_sizes(event=None):
+            if hasattr(self, 'root'):
+                window_width = self.root.winfo_width()
+                # Adjust base size according to window width
+                base_size = max(8, min(12, window_width // 80))  # Responsive font size
+                button_padding = max(6, min(15, window_width // 100))  # Responsive padding
+                
+                # Update button styles
+                self.style.configure('Primary.TButton',
+                                padding=[button_padding * 2, button_padding],
+                                font=('Helvetica', base_size, 'bold'))
+                
+                self.style.configure('Success.TButton',
+                                padding=[button_padding * 2, button_padding],
+                                font=('Helvetica', base_size, 'bold'))
+                
+                self.style.configure('Danger.TButton',
+                                padding=[button_padding * 2, button_padding],
+                                font=('Helvetica', base_size, 'bold'))
+                
+                # Update label styles
+                self.style.configure('Title.TLabel',
+                                font=('Helvetica', base_size + 4, 'bold'),
+                                padding=[0, button_padding])
+                
+                self.style.configure('Status.TLabel',
+                                font=('Helvetica', base_size - 2),
+                                padding=[button_padding//2, button_padding//2])
         
-        # Button styles
-        self.style.configure('Primary.TButton',
-                           padding=[20, 10],
-                           font=('Helvetica', 10, 'bold'))
+        # Initial style configuration
+        self.style.configure('TNotebook.Tab', padding=[12, 8])
+        
+        # Button style maps
         self.style.map('Primary.TButton',
-                      background=[('pressed', primary_color), ('active', primary_color)],
-                      foreground=[('pressed', 'white'), ('active', 'white')])
+                    background=[('pressed', primary_color), ('active', primary_color)],
+                    foreground=[('pressed', 'white'), ('active', 'white')])
         
-        # Success button style
-        self.style.configure('Success.TButton',
-                           padding=[20, 10],
-                           font=('Helvetica', 10, 'bold'))
         self.style.map('Success.TButton',
-                      background=[('pressed', success_color), ('active', success_color)],
-                      foreground=[('pressed', 'white'), ('active', 'white')])
+                    background=[('pressed', success_color), ('active', success_color)],
+                    foreground=[('pressed', 'white'), ('active', 'white')])
         
-        # Danger button style
-        self.style.configure('Danger.TButton',
-                           padding=[20, 10],
-                           font=('Helvetica', 10, 'bold'))
         self.style.map('Danger.TButton',
-                      background=[('pressed', danger_color), ('active', danger_color)],
-                      foreground=[('pressed', 'white'), ('active', 'white')])
+                    background=[('pressed', danger_color), ('active', danger_color)],
+                    foreground=[('pressed', 'white'), ('active', 'white')])
         
-        # Label styles
-        self.style.configure('Title.TLabel',
-                           font=('Helvetica', 16, 'bold'),
-                           padding=[0, 10])
-        
-        self.style.configure('Status.TLabel',
-                           font=('Helvetica', 10),
-                           padding=[5, 5])
-
+        # Bind the update_sizes function to window resize
+        self.root.bind('<Configure>', update_sizes)
+        # Initial call to set sizes
+        update_sizes()
+    
     def setup_massage_tab(self):
         # Title
         title = ttk.Label(self.massage_tab, 
-                         text="Điều khiển massage bấm huyệt",
-                         style='Title.TLabel')
+                        text="Điều khiển massage bấm huyệt",
+                        style='Title.TLabel')
         title.pack(fill='x', pady=(0, 20))
         
         # Create main content frame with two columns
         content_frame = ttk.Frame(self.massage_tab)
         content_frame.pack(fill='both', expand=True)
         
-        # Left column - Display
-        display_frame = ttk.LabelFrame(content_frame, text="Hiển thị camera", padding="5")
-        display_frame.pack(side='left', fill='both', expand=True, padx=(0, 10))
+        # Create a frame for the left side (70% of width)
+        left_main_frame = ttk.Frame(content_frame)
+        left_main_frame.pack(side='left', fill='both', expand=True, padx=(0, 10))
         
-        # Camera displays with borders and shadows
-        self.left_display = ttk.Label(display_frame, relief='solid', borderwidth=1)
-        self.left_display.pack(fill='both', expand=True, padx=5, pady=5)
+        # Left column - Display frame (takes up available space)
+        display_frame = ttk.LabelFrame(left_main_frame, text="Hiển thị camera", padding="5")
+        display_frame.pack(fill='both', expand=True)
         
-        self.right_display = ttk.Label(display_frame, relief='solid', borderwidth=1)
-        self.right_display.pack(fill='both', expand=True, padx=5, pady=5)
+        # Create a frame to hold the two camera displays side by side
+        camera_frame = ttk.Frame(display_frame)
+        camera_frame.pack(fill='both', expand=True, padx=5, pady=5)
         
-        # Right column - Controls
+        # Configure grid weights for camera frame
+        camera_frame.grid_columnconfigure(0, weight=1)
+        camera_frame.grid_columnconfigure(1, weight=1)
+        camera_frame.grid_rowconfigure(0, weight=1)
+        
+        # Left camera display
+        self.left_display = ttk.Label(camera_frame, relief='solid', borderwidth=1)
+        self.left_display.grid(row=0, column=0, sticky='nsew', padx=(0, 2))
+        
+        # Right camera display
+        self.right_display = ttk.Label(camera_frame, relief='solid', borderwidth=1)
+        self.right_display.grid(row=0, column=1, sticky='nsew', padx=(2, 0))
+        
+        # Right column - Controls (30% of width)
         control_frame = ttk.LabelFrame(content_frame, text="Điều khiển", padding="5")
-        control_frame.pack(side='right', fill='y', padx=(10, 0))
+        control_frame.pack(side='right', fill='both', padx=(10, 0))
+        
+        # Make control frame elements expand horizontally
+        control_frame.grid_columnconfigure(0, weight=1)
         
         # Routine selection with better styling
         ttk.Label(control_frame, text="Chọn bài bấm huyệt:",
-                 font=('Helvetica', 10, 'bold')).pack(fill='x', pady=(0, 5))
+                font=('Helvetica', 10, 'bold')).pack(fill='x', pady=(0, 5))
         
         routines = ["Sốt, co giật", "Stress", "Thoát vị đĩa đệm", 
-                   "Bổ thận tráng dương", "Nâng cao sức khỏe"]
+                "Bổ thận tráng dương", "Nâng cao sức khỏe"]
         self.routine_var = tk.StringVar()
         routine_combo = ttk.Combobox(control_frame, 
-                                   textvariable=self.routine_var,
-                                   values=routines,
-                                   width=30)
+                                textvariable=self.routine_var,
+                                values=routines)
         routine_combo.pack(fill='x', pady=(0, 20))
         
         # Medicine control group
         medicine_frame = ttk.LabelFrame(control_frame, text="Điều khiển dẫn dược", padding="5")
         medicine_frame.pack(fill='x', pady=(0, 10))
+        medicine_frame.grid_columnconfigure(0, weight=1)
         
         self.btn_on_medicine = CustomButton(medicine_frame, 
-                                          text="Bật dẫn dược",
-                                          style='Success.TButton',
-                                          command=self.toggle_medicine)
+                                        text="Bật dẫn dược",
+                                        style='Success.TButton',
+                                        command=self.toggle_medicine)
         self.btn_on_medicine.pack(fill='x', pady=2)
         
         self.btn_off_medicine = CustomButton(medicine_frame, 
-                                           text="Tắt dẫn dược",
-                                           style='Danger.TButton',
-                                           command=self.toggle_medicine)
+                                        text="Tắt dẫn dược",
+                                        style='Danger.TButton',
+                                        command=self.toggle_medicine)
         self.btn_off_medicine.pack(fill='x', pady=2)
         
-        # Herb control group
-        herb_frame = ttk.LabelFrame(control_frame, text="Điều khiển dược liệu", padding="10")
+        # Herb control group with grid layout
+        herb_frame = ttk.LabelFrame(control_frame, text="Điều khiển dược liệu", padding="5")
         herb_frame.pack(fill='x', pady=(0, 10))
+        herb_frame.grid_columnconfigure(0, weight=1)
         
         self.btn_on_herb = CustomButton(herb_frame, 
-                                      text="Đốt dược liệu",
-                                      style='Success.TButton',
-                                      command=self.toggle_herb)
+                                    text="Đốt dược liệu",
+                                    style='Success.TButton',
+                                    command=self.toggle_herb)
         self.btn_on_herb.pack(fill='x', pady=2)
         
         self.btn_off_herb = CustomButton(herb_frame, 
-                                       text="Tắt đốt dược liệu",
-                                       style='Danger.TButton',
-                                       command=self.toggle_herb)
+                                    text="Tắt đốt dược liệu",
+                                    style='Danger.TButton',
+                                    command=self.toggle_herb)
         self.btn_off_herb.pack(fill='x', pady=2)
         
-        # Main control buttons
+        # Main control buttons with grid layout
         control_buttons_frame = ttk.Frame(control_frame)
         control_buttons_frame.pack(fill='x', pady=20)
+        control_buttons_frame.grid_columnconfigure(0, weight=1)
         
         self.start_button = CustomButton(control_buttons_frame, 
-                                       text="Bắt đầu bấm huyệt",
-                                       style='Success.TButton',
-                                       command=self.start_massage)
+                                    text="Bắt đầu bấm huyệt",
+                                    style='Success.TButton',
+                                    command=self.start_massage)
         self.start_button.pack(fill='x', pady=2)
         
         self.stop_button = CustomButton(control_buttons_frame, 
-                                      text="Dừng máy",
-                                      style='Danger.TButton',
-                                      command=self.stop_massage)
+                                    text="Dừng máy",
+                                    style='Danger.TButton',
+                                    command=self.stop_massage)
         self.stop_button.pack(fill='x', pady=2)
 
     def setup_routine_tab(self):
