@@ -263,7 +263,6 @@ def main():
         root.configure(bg='#f0f0f0')
         
         # Set window icon (if you have one)
-        # root.iconbitmap('path/to/your/icon.ico')
         
         # Make window responsive
         root.columnconfigure(0, weight=1)
