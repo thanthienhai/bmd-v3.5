@@ -3,13 +3,14 @@ from processing import FootAcupointDetector
 
 def main(video_path):
     # Mở video
-    cap = cv2.VideoCapture(video_path)
-    
+    # cap = cv2.VideoCapture(video_path)
+    cap = cv2.VideoCapture('/dev/video4')
     if not cap.isOpened():
         raise Exception(f"Error: Could not open video file {video_path}")
 
     # Khởi tạo model
-    detector = FootAcupointDetector(model_path='models/yolo_pose_model.pt')
+    # detector = FootAcupointDetector(model_path='models/yolo_pose_model.onnx')
+    detector = FootAcupointDetector(model_path='models/best.pt')
 
     try:
         while True:
