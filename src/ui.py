@@ -96,7 +96,7 @@ class BMDMachineControl:
         self.camera_thread = CameraThread(self.process_frame)
         
         # Add status bar
-        self.setup_status_bar()
+        # self.setup_status_bar()
 
     # def configure_styles(self):
     #     # Configure colors
@@ -290,7 +290,7 @@ class BMDMachineControl:
         update_sizes()
     
     def setup_massage_tab(self):
-        # Title
+    # Title
         title = ttk.Label(self.massage_tab, 
                         text="Điều khiển massage bấm huyệt",
                         style='Title.TLabel')
@@ -331,6 +331,23 @@ class BMDMachineControl:
         
         # Make control frame elements expand horizontally
         control_frame.grid_columnconfigure(0, weight=1)
+        
+        # Main control buttons (MOVED TO TOP)
+        control_buttons_frame = ttk.Frame(control_frame)
+        control_buttons_frame.pack(fill='x', pady=(0, 20))
+        control_buttons_frame.grid_columnconfigure(0, weight=1)
+        
+        self.start_button = CustomButton(control_buttons_frame, 
+                                    text="Bắt đầu bấm huyệt",
+                                    style='Success.TButton',
+                                    command=self.start_massage)
+        self.start_button.pack(fill='x', pady=2)
+        
+        self.stop_button = CustomButton(control_buttons_frame, 
+                                    text="Dừng máy",
+                                    style='Danger.TButton',
+                                    command=self.stop_massage)
+        self.stop_button.pack(fill='x', pady=2)
         
         # Routine selection with better styling
         ttk.Label(control_frame, text="Chọn bài bấm huyệt:",
@@ -377,23 +394,6 @@ class BMDMachineControl:
                                     style='Danger.TButton',
                                     command=self.toggle_herb)
         self.btn_off_herb.pack(fill='x', pady=2)
-        
-        # Main control buttons with grid layout
-        control_buttons_frame = ttk.Frame(control_frame)
-        control_buttons_frame.pack(fill='x', pady=20)
-        control_buttons_frame.grid_columnconfigure(0, weight=1)
-        
-        self.start_button = CustomButton(control_buttons_frame, 
-                                    text="Bắt đầu bấm huyệt",
-                                    style='Success.TButton',
-                                    command=self.start_massage)
-        self.start_button.pack(fill='x', pady=2)
-        
-        self.stop_button = CustomButton(control_buttons_frame, 
-                                    text="Dừng máy",
-                                    style='Danger.TButton',
-                                    command=self.stop_massage)
-        self.stop_button.pack(fill='x', pady=2)
 
     def setup_routine_tab(self):
         # Title
