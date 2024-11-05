@@ -52,14 +52,14 @@ class FootAcupointDetector:
                     acupoint_name,
                     (text_x, text_y),
                     cv2.FONT_HERSHEY_SIMPLEX,
-                    0.7,  # Tăng kích thước font để dễ đọc hơn
-                    (255, 255, 255),  # Màu trắng
+                    1,  # Tăng kích thước font để dễ đọc hơn
+                    (255, 0, 0),  # Màu trắng
                     2,  # Tăng độ dày để text nổi bật hơn
                     cv2.LINE_AA
                 )
-        height, width, _ = image.shape
-        new_height, new_width = int(height * 0.25), int(width * 0.25)
-        image = cv2.resize(image, (new_width, new_height))
+        # height, width, _ = image.shape
+        # new_height, new_width = int(height * 0.25), int(width * 0.25)
+        # image = cv2.resize(image, (new_width, new_height))
         return image
 
 # import cv2
