@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 import threading
 from ultralytics import YOLO
 from ttkthemes import ThemedTk
+from processing import FootAcupointDetector
 
 class CameraThread(threading.Thread):
     def __init__(self, callback):
@@ -17,10 +18,10 @@ class CameraThread(threading.Thread):
 
     def run(self):
         # cap = cv2.VideoCapture(self.camera_id)
-        cap = cv2.VideoCapture('/dev/video0')  # Example using /dev/video0
-        cap2 = cv2.VideoCapture('/dev/video2')  # Example using /dev/video2
-        # video_path = 'video_test/video.mp4'
-        # cap = cv2.VideoCapture(video_path)
+        # cap = cv2.VideoCapture('/dev/video0')  # Example using /dev/video0
+        # cap2 = cv2.VideoCapture('/dev/video2')  # Example using /dev/video2
+        video_path = 'video_test/1.mp4'
+        cap = cv2.VideoCapture(video_path)
         self.running = True
         
         while self.running:
@@ -63,10 +64,12 @@ class BMDMachineControl:
         # Configure custom styles
         self.configure_styles()
         
+        # Khởi tạo detector ngay từ đầu với xử lý lỗi
         try:
-            self.detector = FootAcupointDetector("models/yolo_pose_model.pt")
+            self.detector = FootAcupointDetector("models/best__.pt")
+            print("Đã khởi tạo detector thành công")
         except Exception as e:
-            print(f"Error loading model: {e}")
+            print(f"Lỗi khi khởi tạo detector: {e}")
             self.detector = None
         
         # States
@@ -309,19 +312,60 @@ class BMDMachineControl:
         version_label.pack(side='right')
 
     def process_frame(self, frame):
-        # Process frame logic remains the same
+        # Xoay frame 90 độ
+        frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+        
+        # Lấy kích thước của label hiển thị
+        display_width = self.left_display.winfo_width()
+        display_height = self.left_display.winfo_height()
+        
+        if display_width > 1 and display_height > 1:
+            # Tính toán tỷ lệ sau khi xoay
+            frame_height, frame_width = frame.shape[:2]
+            aspect_ratio = frame_width / frame_height
+            
+            # Tính toán kích thước mới
+            if display_width/display_height > aspect_ratio:
+                new_height = display_height
+                new_width = int(display_height * aspect_ratio)
+            else:
+                new_width = display_width
+                new_height = int(display_width / aspect_ratio)
+            
+            # Resize frame
+            frame = cv2.resize(frame, (new_width, new_height), interpolation=cv2.INTER_AREA)
+        
+        # Xử lý frame với detector
         if self.is_processing and self.detector is not None:
             try:
+                # Detect keypoints
                 keypoints = self.detector.detect_acupoints(frame)
-                processed_frame = self.detector.visualize_keypoints(frame.copy(), 
-                                                                 keypoints)
+                
+                # Visualize keypoints
+                processed_frame = self.detector.visualize_keypoints(frame.copy(), keypoints)
+                print("Visualized keypoints thành công !!!")
+                
+                # Hiển thị frame đã xử lý
                 image = Image.fromarray(processed_frame)
                 photo = ImageTk.PhotoImage(image)
                 self.left_display.configure(image=photo)
                 self.left_display.image = photo
+                
+                # Có thể hiển thị frame gốc ở right_display nếu muốn
+                original_image = Image.fromarray(frame)
+                original_photo = ImageTk.PhotoImage(original_image)
+                self.right_display.configure(image=original_photo)
+                self.right_display.image = original_photo
+                
             except Exception as e:
-                print(f"Error processing frame: {e}")
+                print(f"Lỗi khi xử lý frame: {e}")
+                # Nếu có lỗi, hiển thị frame gốc
+                image = Image.fromarray(frame)
+                photo = ImageTk.PhotoImage(image)
+                self.left_display.configure(image=photo)
+                self.left_display.image = photo
         else:
+            # Hiển thị frame gốc nếu không xử lý
             image = Image.fromarray(frame)
             photo = ImageTk.PhotoImage(image)
             self.left_display.configure(image=photo)
@@ -440,31 +484,6 @@ def center_window(window):
     x = (window.winfo_screenwidth() // 2) - (width // 2)
     y = (window.winfo_screenheight() // 2) - (height // 2)
     window.geometry(f'{width}x{height}+{x}+{y}')
-
-class FootAcupointDetector:
-    """Placeholder class for foot acupoint detection"""
-    def __init__(self, model_path):
-        self.model = YOLO(model_path) if model_path else None
-
-    def detect_acupoints(self, frame):
-        """Detect acupoints in the given frame"""
-        if self.model:
-            # Add your actual detection logic here
-            # Example using YOLO model
-            results = self.model(frame)
-            # Process results to extract keypoints
-            # ...
-            return []
-        return []
-
-    def visualize_keypoints(self, frame, keypoints):
-        """Visualize detected keypoints on the frame"""
-        if keypoints:
-            for point in keypoints:
-                # Add your visualization logic here
-                # Example using OpenCV
-                cv2.circle(frame, (int(point[0]), int(point[1])), 5, (0, 0, 255), -1)
-        return frame
 
 if __name__ == "__main__":
     main()

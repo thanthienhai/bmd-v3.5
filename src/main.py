@@ -9,8 +9,8 @@ def main(video_path):
         raise Exception(f"Error: Could not open video file {video_path}")
 
     # Khởi tạo model
-    # detector = FootAcupointDetector(model_path='models/yolo_pose_model.onnx')
-    detector = FootAcupointDetector(model_path='/home/ubuntu/Coding/swork/bmd-v3.5/models/best_ncnn_model')
+    detector = FootAcupointDetector(model_path='models/best_9_11.pt')
+    # detector = FootAcupointDetector(model_path='/home/ubuntu/Coding/swork/bmd-v3.5/models/best_ncnn_model')
 
     try:
         while True:
@@ -40,5 +40,5 @@ def main(video_path):
         cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    video_path = 'video_test/video.mp4'  # Đường dẫn tới video của bạn
+    video_path = 'video_test/1.mp4'  # Đường dẫn tới video của bạn
     main(video_path)

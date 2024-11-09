@@ -143,25 +143,25 @@ Concat                   cat_12                   3 1 168 170 175 176 0=0
 Convolution              conv_47                  1 1 176 177 0=256 1=1 11=1 12=1 13=1 14=0 2=1 3=1 4=0 5=1 6=98304
 Swish                    silu_123                 1 1 177 178
 Split                    splitncnn_19             1 3 178 179 180 181
-MemoryData               pnnx_101                 0 1 182 0=8400
+MemoryData               pnnx_101                 0 1 182 0=2100
 Convolution              conv_48                  1 1 141 183 0=18 1=3 11=3 12=1 13=1 14=1 2=1 3=1 4=1 5=1 6=10368
 Swish                    silu_124                 1 1 183 184
 Convolution              conv_49                  1 1 184 185 0=18 1=3 11=3 12=1 13=1 14=1 2=1 3=1 4=1 5=1 6=2916
 Swish                    silu_125                 1 1 185 186
 Convolution              conv_50                  1 1 186 187 0=18 1=1 11=1 12=1 13=1 14=0 2=1 3=1 4=0 5=1 6=324
-Reshape                  view_147                 1 1 187 188 0=6400 1=18
+Reshape                  view_147                 1 1 187 188 0=1600 1=18
 Convolution              conv_51                  1 1 161 189 0=18 1=3 11=3 12=1 13=1 14=1 2=1 3=1 4=1 5=1 6=20736
 Swish                    silu_126                 1 1 189 190
 Convolution              conv_52                  1 1 190 191 0=18 1=3 11=3 12=1 13=1 14=1 2=1 3=1 4=1 5=1 6=2916
 Swish                    silu_127                 1 1 191 192
 Convolution              conv_53                  1 1 192 193 0=18 1=1 11=1 12=1 13=1 14=0 2=1 3=1 4=0 5=1 6=324
-Reshape                  view_148                 1 1 193 194 0=1600 1=18
+Reshape                  view_148                 1 1 193 194 0=400 1=18
 Convolution              conv_54                  1 1 181 195 0=18 1=3 11=3 12=1 13=1 14=1 2=1 3=1 4=1 5=1 6=41472
 Swish                    silu_128                 1 1 195 196
 Convolution              conv_55                  1 1 196 197 0=18 1=3 11=3 12=1 13=1 14=1 2=1 3=1 4=1 5=1 6=2916
 Swish                    silu_129                 1 1 197 198
 Convolution              conv_56                  1 1 198 199 0=18 1=1 11=1 12=1 13=1 14=0 2=1 3=1 4=0 5=1 6=324
-Reshape                  view_149                 1 1 199 200 0=400 1=18
+Reshape                  view_149                 1 1 199 200 0=100 1=18
 Concat                   cat_13                   3 1 188 194 200 201 0=1
 Convolution              conv_57                  1 1 140 202 0=64 1=3 11=3 12=1 13=1 14=1 2=1 3=1 4=1 5=1 6=36864
 Swish                    silu_130                 1 1 202 203
@@ -196,18 +196,18 @@ Convolution              conv_73                  1 1 230 231 0=64 1=3 11=3 12=1
 Swish                    silu_141                 1 1 231 232
 Convolution              conv_74                  1 1 232 233 0=1 1=1 11=1 12=1 13=1 14=0 2=1 3=1 4=0 5=1 6=64
 Concat                   cat_16                   2 1 228 233 234 0=0
-Reshape                  view_150                 1 1 212 235 0=6400 1=65
-Reshape                  view_151                 1 1 223 236 0=1600 1=65
-Reshape                  view_152                 1 1 234 237 0=400 1=65
+Reshape                  view_150                 1 1 212 235 0=1600 1=65
+Reshape                  view_151                 1 1 223 236 0=400 1=65
+Reshape                  view_152                 1 1 234 237 0=100 1=65
 Concat                   cat_17                   3 1 235 236 237 238 0=1
 Slice                    split_8                  1 2 238 239 240 -23300=2,64,1 1=0
-Reshape                  view_153                 1 1 239 241 0=8400 1=16 2=4
+Reshape                  view_153                 1 1 239 241 0=2100 1=16 2=4
 Permute                  transpose_157            1 1 241 242 0=2
 Softmax                  softmax_2                1 1 242 243 0=0 1=1
 Convolution              conv_75                  1 1 243 244 0=1 1=1 11=1 12=1 13=1 14=0 2=1 3=1 4=0 5=0 6=16
-Reshape                  view_154                 1 1 244 245 0=8400 1=4
-MemoryData               pnnx_fold_anchor_points.1 0 1 246 0=8400 1=2
-MemoryData               pnnx_fold_anchor_points.1_1 0 1 247 0=8400 1=2
+Reshape                  view_154                 1 1 244 245 0=2100 1=4
+MemoryData               pnnx_fold_anchor_points.1 0 1 246 0=2100 1=2
+MemoryData               pnnx_fold_anchor_points.1_1 0 1 247 0=2100 1=2
 Slice                    chunk_0                  1 2 245 248 249 -23300=2,-233,-233 1=0
 BinaryOp                 sub_6                    2 1 246 248 250 0=1
 Split                    splitncnn_20             1 2 250 251 252
@@ -217,20 +217,20 @@ BinaryOp                 add_8                    2 1 251 254 256 0=0
 BinaryOp                 div_9                    1 1 256 257 0=3 1=1 2=2.000000e+00
 BinaryOp                 sub_10                   2 1 255 252 258 0=1
 Concat                   cat_18                   2 1 257 258 259 0=0
-Reshape                  reshape_144              1 1 182 260 0=8400 1=1
+Reshape                  reshape_144              1 1 182 260 0=2100 1=1
 BinaryOp                 mul_11                   2 1 259 260 261 0=2
 Sigmoid                  sigmoid_0                1 1 240 262
 Concat                   cat_19                   2 1 261 262 263 0=0
-Reshape                  view_155                 1 1 201 264 0=8400 1=3 2=6
+Reshape                  view_155                 1 1 201 264 0=2100 1=3 2=6
 Slice                    tensor_split_0           1 2 264 265 266 -23300=2,2,-233 1=1
-MemoryData               pnnx_fold_698            0 1 267 0=8400 1=2
-MemoryData               pnnx_235                 0 1 268 0=8400
+MemoryData               pnnx_fold_698            0 1 267 0=2100 1=2
+MemoryData               pnnx_235                 0 1 268 0=2100
 BinaryOp                 mul_12                   1 1 265 269 0=2 1=1 2=2.000000e+00
-Reshape                  reshape_145              1 1 267 270 0=8400 1=2 2=1
+Reshape                  reshape_145              1 1 267 270 0=2100 1=2 2=1
 BinaryOp                 add_13                   2 1 269 270 271 0=0
-Reshape                  reshape_146              1 1 268 272 0=8400 1=1 2=1
+Reshape                  reshape_146              1 1 268 272 0=2100 1=1 2=1
 BinaryOp                 mul_14                   2 1 271 272 273 0=2
 Sigmoid                  sigmoid_1                1 1 266 274
 Concat                   cat_20                   2 1 273 274 275 0=1
-Reshape                  view_156                 1 1 275 276 0=8400 1=18
+Reshape                  view_156                 1 1 275 276 0=2100 1=18
 Concat                   cat_21                   2 1 263 276 out0 0=0
