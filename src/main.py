@@ -9,7 +9,7 @@ def main(video_path):
         raise Exception(f"Error: Could not open video file {video_path}")
 
     # Khởi tạo model
-    detector = FootAcupointDetector(model_path='models/best_9_11.pt')
+    detector = FootAcupointDetector(model_path='models/foot-keypoints-v7i.pt')
     # detector = FootAcupointDetector(model_path='/home/ubuntu/Coding/swork/bmd-v3.5/models/best_ncnn_model')
 
     try:
