@@ -644,31 +644,34 @@ class BMDMachineControl:
         def update_sizes(event=None):
             if hasattr(self, 'root'):
                 window_width = self.root.winfo_width()
-                # Adjust base size according to window width
-                base_size = max(8, min(12, window_width // 80))  # Responsive font size
-                button_padding = max(6, min(15, window_width // 100))  # Responsive padding
+                window_height = self.root.winfo_height()
 
-                # Update button styles
+                # Adjust base size according to window width
+                base_size = max(12, min(18, window_width // 60))  # Responsive font size tăng lên
+                button_padding_x = max(10, min(20, window_width // 100))  # Horizontal padding
+                button_padding_y = max(10, min(30, window_width // 60))  # Vertical padding tăng lên
+
+                # Update button styles with larger font and padding
                 self.style.configure('Primary.TButton',
-                                padding=[button_padding * 2, button_padding],
+                                padding=[button_padding_x, button_padding_y],
                                 font=('Helvetica', base_size, 'bold'))
 
                 self.style.configure('Success.TButton',
-                                padding=[button_padding * 2, button_padding],
+                                padding=[button_padding_x, button_padding_y],
                                 font=('Helvetica', base_size, 'bold'))
 
                 self.style.configure('Danger.TButton',
-                                padding=[button_padding * 2, button_padding],
+                                padding=[button_padding_x, button_padding_y],
                                 font=('Helvetica', base_size, 'bold'))
 
                 # Update label styles
                 self.style.configure('Title.TLabel',
-                                font=('Helvetica', base_size + 4, 'bold'),
-                                padding=[0, button_padding])
+                                font=('Helvetica', base_size + 6, 'bold'),
+                                padding=[0, button_padding_y])
 
                 self.style.configure('Status.TLabel',
                                 font=('Helvetica', base_size - 2),
-                                padding=[button_padding//2, button_padding//2])
+                                padding=[button_padding_x//2, button_padding_y//2])
 
         # Initial style configuration
         self.style.configure('TNotebook.Tab', padding=[12, 8])
@@ -730,73 +733,125 @@ class BMDMachineControl:
         # Make control frame elements expand horizontally
         control_frame.grid_columnconfigure(0, weight=1)
 
-        # Main control buttons (MOVED TO TOP)
+        # ====================== Tạo Frame Cho Các Nút Điều Khiển ======================
+        # Sử dụng grid để sắp xếp các nút theo hàng ngang
+
+        # Tạo một khung để chứa các nút điều khiển chính (Bắt đầu và Dừng)
         control_buttons_frame = ttk.Frame(control_frame)
         control_buttons_frame.pack(fill='x', pady=(0, 20))
         control_buttons_frame.grid_columnconfigure(0, weight=1)
+        control_buttons_frame.grid_columnconfigure(1, weight=1)  # Thêm cấu hình cột
 
+        # Nút Bắt đầu bấm huyệt
         self.start_button = CustomButton(control_buttons_frame, 
-                                    text="Bắt đầu bấm huyệt",
-                                    style='Success.TButton',
-                                    command=self.start_massage)
-        self.start_button.pack(fill='x', pady=2)
+                                        text="Bắt đầu bấm huyệt",
+                                        style='Success.TButton',
+                                        command=self.start_massage,
+                                        width=20)  # Đặt chiều rộng
+        self.start_button.grid(row=0, column=0, padx=5, pady=5, sticky='ew')  # Đặt ở cột 0
 
+        # Nút Dừng máy
         self.stop_button = CustomButton(control_buttons_frame, 
-                                    text="Dừng máy",
-                                    style='Danger.TButton',
-                                    command=self.stop_massage)
-        self.stop_button.pack(fill='x', pady=2)
+                                        text="Dừng máy",
+                                        style='Danger.TButton',
+                                        command=self.stop_massage,
+                                        width=20)  # Đặt chiều rộng
+        self.stop_button.grid(row=0, column=1, padx=5, pady=5, sticky='ew')  # Đặt ở cột 1
         self.stop_button.state(['disabled'])  # Initially disabled
 
+        # Routine selection with better styling
+        # ttk.Label(control_frame, text="Chọn bài bấm huyệt:",
+        #         font=('Helvetica', 10, 'bold')).pack(fill='x', pady=(0, 5))
+
+        # routines = ["Sốt, co giật", "Stress", "Thoát vị đĩa đệm", 
+        #         "Bổ thận tráng dương", "Nâng cao sức khỏe"]
+        # self.routine_var = tk.StringVar()
+        # routine_combo = ttk.Combobox(control_frame, 
+        #                             textvariable=self.routine_var,
+        #                             values=routines,
+        #                             width=30,  # Increased width for better visibility
+        #                             font=('Helvetica', 26))  # Optional: Larger font for readability
+        # routine_combo.grid(row=0, column=0, sticky='ew')
+        # routine_combo.pack(fill='x', pady=(0, 20))
+        # # Tạo nút tùy chỉnh cho combobox
+        # dropdown_button = ttk.Button(control_frame, 
+        #                             text="▼", 
+        #                             command=lambda: routine_combo.event_generate('<Button-1>'))
+        # dropdown_button.grid(row=0, column=1, padx=(5, 0), sticky='ns')  # Đặt vào cột 1
+        # combo_frame.grid_columnconfigure(0, weight=1)
+        # dropdown_button.pack(side='right', padx=5, pady=5)  # Đặt cạnh bên phải của combobox
         # Routine selection with better styling
         ttk.Label(control_frame, text="Chọn bài bấm huyệt:",
                 font=('Helvetica', 10, 'bold')).pack(fill='x', pady=(0, 5))
 
         routines = ["Sốt, co giật", "Stress", "Thoát vị đĩa đệm", 
-                "Bổ thận tráng dương", "Nâng cao sức khỏe"]
+                    "Bổ thận tráng dương", "Nâng cao sức khỏe"]
         self.routine_var = tk.StringVar()
-        routine_combo = ttk.Combobox(control_frame, 
-                                textvariable=self.routine_var,
-                                values=routines,
-                                width=30,  # Increased width for better visibility
-                                font=('Helvetica', 12))  # Optional: Larger font for readability
-        routine_combo.pack(fill='x', pady=(0, 20))
 
+        # Tạo một Frame mới để chứa Combobox và nút tùy chỉnh
+        combo_frame = ttk.Frame(control_frame)
+        combo_frame.pack(fill='x', pady=(0, 20))  # Đảm bảo Frame này chiếm đủ chiều ngang
+
+        # Thêm Combobox vào Frame và căn lề trái
+        routine_combo = ttk.Combobox(combo_frame, 
+                                    textvariable=self.routine_var,
+                                    values=routines,
+                                    width=35,  
+                                    font=('Helvetica', 18))
+        routine_combo.pack(side='left', fill='x', expand=True)  # Sử dụng pack với side='left'
+
+        # Thêm nút tùy chỉnh vào Frame và căn lề phải
+        dropdown_button = ttk.Button(combo_frame, 
+                                    text="▼", 
+                                    command=lambda: routine_combo.event_generate('<Button-1>'))
+        dropdown_button.pack(side='left', padx=(5, 0))  # Căn bên cạnh combobox với khoảng cách nhỏ
+
+        # ====================== Điều Khiển Dẫn Dược ======================
         # Medicine control group
         medicine_frame = ttk.LabelFrame(control_frame, text="Điều khiển dẫn dược", padding="5")
         medicine_frame.pack(fill='x', pady=(0, 10))
         medicine_frame.grid_columnconfigure(0, weight=1)
+        medicine_frame.grid_columnconfigure(1, weight=1)  # Thêm cấu hình cột
 
+        # Sử dụng grid để đặt các nút cùng hàng
         self.btn_on_medicine = CustomButton(medicine_frame, 
-                                        text="Bật dẫn dược",
-                                        style='Success.TButton',
-                                        command=self.toggle_medicine)
-        self.btn_on_medicine.pack(fill='x', pady=2)
+                                            text="Bật dẫn dược",
+                                            style='Success.TButton',
+                                            command=self.toggle_medicine,
+                                            width=15)  # Đặt chiều rộng
+        self.btn_on_medicine.grid(row=0, column=0, padx=5, pady=5, sticky='ew')  # Đặt ở cột 0
 
         self.btn_off_medicine = CustomButton(medicine_frame, 
-                                        text="Tắt dẫn dược",
-                                        style='Danger.TButton',
-                                        command=self.toggle_medicine)
-        self.btn_off_medicine.pack(fill='x', pady=2)
+                                            text="Tắt dẫn dược",
+                                            style='Danger.TButton',
+                                            command=self.toggle_medicine,
+                                            width=15)  # Đặt chiều rộng
+        self.btn_off_medicine.grid(row=0, column=1, padx=5, pady=5, sticky='ew')  # Đặt ở cột 1
         self.btn_off_medicine.state(['disabled'])  # Initially disabled
 
+        # ====================== Điều Khiển Dược Liệu ======================
         # Herb control group with grid layout
         herb_frame = ttk.LabelFrame(control_frame, text="Điều khiển dược liệu", padding="5")
         herb_frame.pack(fill='x', pady=(0, 10))
         herb_frame.grid_columnconfigure(0, weight=1)
+        herb_frame.grid_columnconfigure(1, weight=1)  # Thêm cấu hình cột
 
+        # Sử dụng grid để đặt các nút cùng hàng
         self.btn_on_herb = CustomButton(herb_frame, 
-                                    text="Đốt dược liệu",
-                                    style='Success.TButton',
-                                    command=self.toggle_herb)
-        self.btn_on_herb.pack(fill='x', pady=2)
+                                        text="Đốt dược liệu",
+                                        style='Success.TButton',
+                                        command=self.toggle_herb,
+                                        width=15)  # Đặt chiều rộng
+        self.btn_on_herb.grid(row=0, column=0, padx=5, pady=5, sticky='ew')  # Đặt ở cột 0
 
         self.btn_off_herb = CustomButton(herb_frame, 
-                                    text="Tắt đốt dược liệu",
-                                    style='Danger.TButton',
-                                    command=self.toggle_herb)
-        self.btn_off_herb.pack(fill='x', pady=2)
+                                        text="Tắt đốt dược liệu",
+                                        style='Danger.TButton',
+                                        command=self.toggle_herb,
+                                        width=15)  # Đặt chiều rộng
+        self.btn_off_herb.grid(row=0, column=1, padx=5, pady=5, sticky='ew')  # Đặt ở cột 1
         self.btn_off_herb.state(['disabled'])  # Initially disabled
+
 
     def setup_routine_tab(self):
         # Title
@@ -961,7 +1016,7 @@ def create_splash_screen(parent):
     """Create a splash screen while the application loads"""
     splash = tk.Toplevel(parent)
     splash.title("")
-    splash.geometry("400x300")
+    splash.geometry("640x480")
     splash.overrideredirect(True)  # Remove window decorations
 
     # Center splash screen
@@ -1018,8 +1073,9 @@ def main():
         # Set window size and prevent resizing
         root.geometry("1024x600")
         root.minsize(1024, 600)
-        root.maxsize(1024, 600)
-        root.resizable(False, False)  # Disable window resizing
+        # root.maxsize(1024, 600)
+        root.maxsize(1920, 1080)
+        root.resizable(True, True)  # Disable window resizing
         root.update()  # Apply geometry settings immediately
 
         # Initialize application
