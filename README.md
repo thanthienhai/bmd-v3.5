@@ -34,7 +34,7 @@ BMD Machine Control V3.5 là một ứng dụng GUI được phát triển bằn
    - Tải mô hình YOLO-Pose và lưu vào thư mục `models/` với tên `best-640-100eps.pt`.
 
 ## Cấu trúc thư mục
-
+```bash
 BMD-Machine-Control/
 │
 ├── src/
@@ -47,7 +47,7 @@ BMD-Machine-Control/
 │
 ├── requirements.txt # Danh sách các thư viện cần thiết
 └── README.md # Tài liệu hướng dẫn
-
+```
 
 ## Cách sử dụng
 1. **Khởi động ứng dụng**:
