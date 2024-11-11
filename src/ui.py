@@ -11,7 +11,7 @@ from processing import FootAcupointDetector
 
 class CameraThread(threading.Thread):
     def __init__(self, callback):
-        super().__init__()
+        super().__init__(daemon=True)
         self.callback = callback
         self.running = False
         self.camera_id = 0
@@ -45,9 +45,14 @@ class CameraThread(threading.Thread):
 
     def stop(self):
         if self.is_alive():
+            print("Stopping CameraThread...")
             self.running = False
             self.event.set()  # Unblock the wait if it's waiting
-            self.join()
+            self.join(timeout=2)  # Đặt timeout để tránh treo
+            if self.is_alive():
+                print("Warning: CameraThread did not terminate in time.")
+            else:
+                print("CameraThread successfully stopped.")
 
 class CustomButton(ttk.Button):
     def __init__(self, master=None, **kwargs):
@@ -240,28 +245,7 @@ class BMDMachineControl:
         self.stop_button.grid(row=0, column=1, padx=5, pady=5, sticky='ew')  # Đặt ở cột 1
         self.stop_button.state(['disabled'])  # Initially disabled
 
-        # Routine selection with better styling
-        # ttk.Label(control_frame, text="Chọn bài bấm huyệt:",
-        #         font=('Helvetica', 10, 'bold')).pack(fill='x', pady=(0, 5))
 
-        # routines = ["Sốt, co giật", "Stress", "Thoát vị đĩa đệm", 
-        #         "Bổ thận tráng dương", "Nâng cao sức khỏe"]
-        # self.routine_var = tk.StringVar()
-        # routine_combo = ttk.Combobox(control_frame, 
-        #                             textvariable=self.routine_var,
-        #                             values=routines,
-        #                             width=30,  # Increased width for better visibility
-        #                             font=('Helvetica', 26))  # Optional: Larger font for readability
-        # routine_combo.grid(row=0, column=0, sticky='ew')
-        # routine_combo.pack(fill='x', pady=(0, 20))
-        # # Tạo nút tùy chỉnh cho combobox
-        # dropdown_button = ttk.Button(control_frame, 
-        #                             text="▼", 
-        #                             command=lambda: routine_combo.event_generate('<Button-1>'))
-        # dropdown_button.grid(row=0, column=1, padx=(5, 0), sticky='ns')  # Đặt vào cột 1
-        # combo_frame.grid_columnconfigure(0, weight=1)
-        # dropdown_button.pack(side='right', padx=5, pady=5)  # Đặt cạnh bên phải của combobox
-        # Routine selection with better styling
         ttk.Label(control_frame, text="Chọn bài bấm huyệt:",
                 font=('Helvetica', 10, 'bold')).pack(fill='x', pady=(0, 5))
 
@@ -332,6 +316,18 @@ class BMDMachineControl:
                                         width=15)  # Đặt chiều rộng
         self.btn_off_herb.grid(row=0, column=1, padx=5, pady=5, sticky='ew')  # Đặt ở cột 1
         self.btn_off_herb.state(['disabled'])  # Initially disabled
+        
+        # ====================== Thêm Nút 'THOÁT' ======================
+        # Tạo một khung mới để chứa nút 'THOÁT'
+        exit_frame = ttk.Frame(control_frame)
+        exit_frame.pack(fill='x', pady=(10, 0))  # Thêm khoảng cách trên nút
+
+        # Thêm nút 'THOÁT' vào exit_frame
+        exit_button = CustomButton(exit_frame, 
+                                text="THOÁT", 
+                                style='Danger.TButton', 
+                                command=self.on_closing)
+        exit_button.pack(pady=5)  # Đặt nút với khoảng cách trên và dưới
 
 
     def setup_routine_tab(self):
@@ -365,6 +361,13 @@ class BMDMachineControl:
                               text="Tính năng đang được phát triển...",
                               font=('Helvetica', 12))
         placeholder.pack(expand=True)
+        
+        # Thêm nút 'THOÁT' dưới placeholder
+        exit_button = CustomButton(content_frame, 
+                                text="THOÁT", 
+                                style='Danger.TButton', 
+                                command=self.on_closing)
+        exit_button.pack(pady=20)
 
     def setup_status_bar(self):
         # Create status bar
@@ -381,6 +384,7 @@ class BMDMachineControl:
                                 text="v3.5",
                                 style='Status.TLabel')
         version_label.pack(side='right')
+        
 
     def process_frame(self, frame):
         # Rotate frame 90 degrees
