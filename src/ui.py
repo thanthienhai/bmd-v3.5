@@ -8,6 +8,7 @@ import threading
 from ultralytics import YOLO
 from ttkthemes import ThemedTk
 from processing import FootAcupointDetector
+import time
 
 class CameraThread(threading.Thread):
     def __init__(self, callback):
@@ -118,6 +119,12 @@ class BMDMachineControl:
 
         # Bind the window close event to the handler
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+        # Thêm các biến mới để theo dõi quá trình nhận diện
+        self.detection_start_time = None
+        self.best_frame = None
+        self.best_confidence = 0
+        self.is_detecting = False
 
     def configure_styles(self):
         # Configure colors
@@ -245,6 +252,15 @@ class BMDMachineControl:
         self.stop_button.grid(row=0, column=1, padx=5, pady=5, sticky='ew')  # Đặt ở cột 1
         self.stop_button.state(['disabled'])  # Initially disabled
 
+        # Thêm nút Nhận diện huyệt vào control_buttons_frame
+        control_buttons_frame.grid_columnconfigure(2, weight=1)  # Thêm cột thứ 3
+        
+        self.detect_button = CustomButton(control_buttons_frame, 
+                                        text="Nhận diện huyệt",
+                                        style='Primary.TButton',
+                                        command=self.start_detection,
+                                        width=20)
+        self.detect_button.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='ew')
 
         ttk.Label(control_frame, text="Chọn bài bấm huyệt:",
                 font=('Helvetica', 10, 'bold')).pack(fill='x', pady=(0, 5))
@@ -410,25 +426,47 @@ class BMDMachineControl:
             # Resize frame
             frame = cv2.resize(frame, (new_width, new_height), interpolation=cv2.INTER_AREA)
 
-        # Process frame with detector
-        if self.is_processing and self.detector is not None:
+        if self.is_detecting and self.detector is not None:
             try:
-                # Detect keypoints
-                keypoints = self.detector.detect_acupoints(frame)
-
-                # Visualize keypoints
-                processed_frame = self.detector.visualize_keypoints(frame.copy(), keypoints)
-                print("Visualized keypoints successfully!")
-
-                # Schedule the GUI update on the main thread
-                self.root.after(0, self.update_gui, processed_frame, frame)
+                # Kiểm tra thời gian đã trôi qua
+                elapsed_time = time.time() - self.detection_start_time
+                
+                if elapsed_time <= 5.0:  # Trong khoảng 5 giây
+                    # Detect keypoints
+                    keypoints, confidences = self.detector.detect_acupoints(frame)
+                    
+                    # Tính toán độ tin cậy trung bình của frame hiện tại
+                    if confidences and len(confidences) > 0:
+                        current_confidence = sum(confidences) / len(confidences)
+                        
+                        # Cập nhật frame tốt nhất nếu có độ tin cậy cao hơn
+                        if current_confidence > self.best_confidence:
+                            self.best_confidence = current_confidence
+                            self.best_frame = frame.copy()
+                            
+                    # Hiển thị frame hiện tại với keypoints
+                    processed_frame = self.detector.visualize_keypoints(frame.copy(), keypoints)
+                    self.root.after(0, self.update_gui, processed_frame, frame)
+                    
+                else:  # Hết 5 giây
+                    self.is_detecting = False
+                    self.detect_button.state(['!disabled'])
+                    
+                    if self.best_frame is not None:
+                        # Hiển thị frame tốt nhất
+                        keypoints, _ = self.detector.detect_acupoints(self.best_frame)
+                        best_processed = self.detector.visualize_keypoints(self.best_frame.copy(), keypoints)
+                        self.root.after(0, self.update_gui, best_processed, self.best_frame)
+                        self.status_display.configure(
+                            text=f"Nhận diện hoàn tất - Độ tin cậy: {self.best_confidence:.2f}")
+                    else:
+                        self.status_display.configure(text="Không tìm thấy huyệt đạo phù hợp")
 
             except Exception as e:
-                print(f"Error processing frame: {e}")
-                # Display original frame in case of error
+                print(f"Lỗi xử lý frame: {e}")
                 self.root.after(0, self.update_gui, frame, frame)
         else:
-            # Display original frame if not processing
+            # Hiển thị frame gốc nếu không trong quá trình nhận diện
             self.root.after(0, self.update_gui, frame, frame)
 
     def update_gui(self, processed_frame, original_frame):
@@ -496,6 +534,21 @@ class BMDMachineControl:
             else:
                 return  # Do not close the window
         self.root.destroy()
+
+    def start_detection(self):
+        """Bắt đầu quá trình nhận diện 5 giây"""
+        if not self.is_detecting:
+            self.is_detecting = True
+            self.detection_start_time = time.time()
+            self.best_frame = None
+            self.best_confidence = 0
+            self.status_display.configure(text="Đang nhận diện huyệt đạo...")
+            self.detect_button.state(['disabled'])
+            
+            # Bắt đầu camera nếu chưa chạy
+            if not self.camera_thread or not self.camera_thread.is_alive():
+                self.camera_thread = CameraThread(self.process_frame)
+                self.camera_thread.start()
 
 def create_splash_screen(parent):
     """Create a splash screen while the application loads"""
