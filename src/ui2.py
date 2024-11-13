@@ -24,7 +24,7 @@ class MedicalControlApp:
         style.theme_use('clam')  # Bạn có thể thay đổi theme tùy ý
 
         # Định nghĩa style cho các nút
-        style.configure("TButton", font=("Arial", 14), padding=10)
+        style.configure("TButton", font=("Arial", 14), padding=2)  # Giảm padding
         style.map("OnButton.TButton",
                   foreground=[('pressed', 'white'), ('active', 'white')],
                   background=[('pressed', 'green'), ('active', 'green')])
@@ -65,7 +65,7 @@ class MedicalControlApp:
 
     def create_gui(self):
         # Frame chính
-        main_frame = ttk.Frame(self.window, padding=20)
+        main_frame = ttk.Frame(self.window, padding=2)  # Giảm padding
         main_frame.grid(row=0, column=0, sticky="NSEW")
 
         # Cấu trúc grid cho main_frame
@@ -77,8 +77,8 @@ class MedicalControlApp:
         main_frame.rowconfigure(0, weight=1)
 
         # Frame hiển thị camera
-        camera_frame = ttk.LabelFrame(main_frame, text="Hiển thị camera", padding=20)
-        camera_frame.grid(row=0, column=0, sticky="NSEW", padx=(0, 20), pady=10)
+        camera_frame = ttk.LabelFrame(main_frame, text="Hiển thị camera", padding=2)  # Giảm padding
+        camera_frame.grid(row=0, column=0, sticky="NSEW", padx=(0, 10), pady=5)  # Giảm padx và pady
 
         # Cấu trúc grid cho camera_frame
         camera_frame.columnconfigure(0, weight=1)
@@ -86,27 +86,27 @@ class MedicalControlApp:
         camera_frame.rowconfigure(0, weight=1)
 
         # Frame cho camera trái
-        left_camera_frame = ttk.LabelFrame(camera_frame, text="Chân trái", padding=10)
-        left_camera_frame.grid(row=0, column=0, sticky="NSEW", padx=10, pady=10)
+        left_camera_frame = ttk.LabelFrame(camera_frame, text="Chân trái", padding=2)  # Giảm padding
+        left_camera_frame.grid(row=0, column=0, sticky="NSEW", padx=5, pady=5)  # Giảm padx và pady
         self.canvas_left = tk.Canvas(left_camera_frame, bg="black")
         self.canvas_left.pack(expand=True, fill='both')
 
         # Frame cho camera phải
-        right_camera_frame = ttk.LabelFrame(camera_frame, text="Chân phải", padding=10)
-        right_camera_frame.grid(row=0, column=1, sticky="NSEW", padx=10, pady=10)
+        right_camera_frame = ttk.LabelFrame(camera_frame, text="Chân phải", padding=2)  # Giảm padding
+        right_camera_frame.grid(row=0, column=1, sticky="NSEW", padx=5, pady=5)  # Giảm padx và pady
         self.canvas_right = tk.Canvas(right_camera_frame, bg="black")
         self.canvas_right.pack(expand=True, fill='both')
 
         # Frame điều khiển
-        control_frame = ttk.LabelFrame(main_frame, text="Điều khiển", padding=20)
-        control_frame.grid(row=0, column=1, sticky="NSEW", pady=10)
+        control_frame = ttk.LabelFrame(main_frame, text="Điều khiển", padding=2)  # Giảm padding
+        control_frame.grid(row=0, column=1, sticky="NSEW", pady=5)  # Giảm pady
 
         # Cấu trúc grid cho control_frame
         control_frame.columnconfigure(0, weight=1)
 
         # Chọn bài bấm huyệt
-        treatment_label = ttk.Label(control_frame, text="Chọn bài bấm huyệt:", font=("Arial", 18))
-        treatment_label.grid(row=0, column=0, sticky="W", pady=(0, 10))
+        treatment_label = ttk.Label(control_frame, text="Chọn bài bấm huyệt:", font=("Arial", 16))  # Giảm kích thước font
+        treatment_label.grid(row=0, column=0, sticky="W", pady=(0, 5))  # Giảm pady
 
         self.treatment_combo = ttk.Combobox(control_frame, state="readonly", values=(
             "Sốt, co giật",
@@ -114,13 +114,13 @@ class MedicalControlApp:
             "Thoát vị đĩa đệm",
             "Bổ thận tráng dương",
             "Nâng cao sức khỏe"
-        ), style="Large.TCombobox", width=30)  # Tăng width
-        self.treatment_combo.grid(row=1, column=0, sticky="EW", pady=(0, 20), ipadx=10, ipady=10)  # Thêm padding nội bộ
+        ), style="Large.TCombobox", width=30)  # Giữ width
+        self.treatment_combo.grid(row=1, column=0, sticky="EW", pady=(0, 10), ipadx=5, ipady=5)  # Giảm pady và ipadx/ipady
         self.treatment_combo.set("Chọn bài bấm huyệt")
 
         # Frame cho các nút điều khiển chính
-        main_buttons_frame = ttk.LabelFrame(control_frame, text="Điều khiển chính", padding=20)
-        main_buttons_frame.grid(row=2, column=0, sticky="EW", pady=10)
+        main_buttons_frame = ttk.LabelFrame(control_frame, text="Điều khiển chính", padding=2)  # Giảm padding
+        main_buttons_frame.grid(row=2, column=0, sticky="EW", pady=5)  # Giảm pady
 
         # Sắp xếp các nút điều khiển chính ngang hàng với rộng hơn và padding
         detect_button = ttk.Button(
@@ -128,29 +128,29 @@ class MedicalControlApp:
             text="Nhận diện huyệt",
             command=self.start_detection
         )
-        detect_button.grid(row=0, column=0, padx=10, pady=10, sticky="EW", ipadx=10)
+        detect_button.grid(row=0, column=0, padx=5, pady=5, sticky="EW", ipadx=5)  # Giảm padx, pady, ipadx
 
         start_press_button = ttk.Button(
             main_buttons_frame,
             text="Bắt đầu bấm huyệt",
             command=self.start_pressing  # Bạn cần định nghĩa hàm này
         )
-        start_press_button.grid(row=0, column=1, padx=10, pady=10, sticky="EW", ipadx=10)
+        start_press_button.grid(row=0, column=1, padx=5, pady=5, sticky="EW", ipadx=5)  # Giảm padx, pady, ipadx
 
         stop_button = ttk.Button(
             main_buttons_frame,
             text="Dừng máy",
             command=self.stop_machine  # Bạn cần định nghĩa hàm này
         )
-        stop_button.grid(row=0, column=2, padx=10, pady=10, sticky="EW", ipadx=10)
+        stop_button.grid(row=0, column=2, padx=5, pady=5, sticky="EW", ipadx=5)  # Giảm padx, pady, ipadx
 
         main_buttons_frame.columnconfigure(0, weight=1)
         main_buttons_frame.columnconfigure(1, weight=1)
         main_buttons_frame.columnconfigure(2, weight=1)
 
         # Frame cho điều khiển dẫn dược
-        medicine_frame = ttk.LabelFrame(control_frame, text="Điều khiển dẫn dược", padding=20)
-        medicine_frame.grid(row=3, column=0, sticky="EW", pady=10)
+        medicine_frame = ttk.LabelFrame(control_frame, text="Điều khiển dẫn dược", padding=2)  # Giảm padding
+        medicine_frame.grid(row=3, column=0, sticky="EW", pady=5)  # Giảm pady
 
         # Sắp xếp các nút điều khiển dẫn dược ngang hàng với rộng hơn và padding
         start_medicine_button = ttk.Button(
@@ -159,7 +159,7 @@ class MedicalControlApp:
             style="OnButton.TButton",
             command=self.start_medicine  # Bạn cần định nghĩa hàm này
         )
-        start_medicine_button.grid(row=0, column=0, padx=10, pady=10, sticky="EW", ipadx=10)
+        start_medicine_button.grid(row=0, column=0, padx=5, pady=5, sticky="EW", ipadx=5)  # Giảm padx, pady, ipadx
 
         stop_medicine_button = ttk.Button(
             medicine_frame,
@@ -167,14 +167,14 @@ class MedicalControlApp:
             style="OffButton.TButton",
             command=self.stop_medicine  # Bạn cần định nghĩa hàm này
         )
-        stop_medicine_button.grid(row=0, column=1, padx=10, pady=10, sticky="EW", ipadx=10)
+        stop_medicine_button.grid(row=0, column=1, padx=5, pady=5, sticky="EW", ipadx=5)  # Giảm padx, pady, ipadx
 
         medicine_frame.columnconfigure(0, weight=1)
         medicine_frame.columnconfigure(1, weight=1)
 
         # Frame cho điều khiển đốt dược liệu
-        burning_frame = ttk.LabelFrame(control_frame, text="Điều khiển đốt dược liệu", padding=20)
-        burning_frame.grid(row=4, column=0, sticky="EW", pady=10)
+        burning_frame = ttk.LabelFrame(control_frame, text="Điều khiển đốt dược liệu", padding=2)  # Giảm padding
+        burning_frame.grid(row=4, column=0, sticky="EW", pady=5)  # Giảm pady
 
         # Sắp xếp các nút điều khiển đốt dược liệu ngang hàng với rộng hơn và padding
         burn_button = ttk.Button(
@@ -183,7 +183,7 @@ class MedicalControlApp:
             style="OnButton.TButton",
             command=self.burn_medicine  # Bạn cần định nghĩa hàm này
         )
-        burn_button.grid(row=0, column=0, padx=10, pady=10, sticky="EW", ipadx=10)
+        burn_button.grid(row=0, column=0, padx=5, pady=5, sticky="EW", ipadx=5)  # Giảm padx, pady, ipadx
 
         stop_burn_button = ttk.Button(
             burning_frame,
@@ -191,7 +191,7 @@ class MedicalControlApp:
             style="OffButton.TButton",
             command=self.stop_burn_medicine  # Bạn cần định nghĩa hàm này
         )
-        stop_burn_button.grid(row=0, column=1, padx=10, pady=10, sticky="EW", ipadx=10)
+        stop_burn_button.grid(row=0, column=1, padx=5, pady=5, sticky="EW", ipadx=5)  # Giảm padx, pady, ipadx
 
         burning_frame.columnconfigure(0, weight=1)
         burning_frame.columnconfigure(1, weight=1)
@@ -202,7 +202,7 @@ class MedicalControlApp:
             text="THOÁT",
             command=self.on_closing
         )
-        exit_button.grid(row=5, column=0, sticky="EW", pady=30, ipadx=10)
+        exit_button.grid(row=5, column=0, sticky="EW", pady=15, ipadx=5)  # Giảm pady, ipadx
 
         # Status bar
         self.status_var = tk.StringVar()
@@ -212,7 +212,7 @@ class MedicalControlApp:
             textvariable=self.status_var,
             relief=tk.SUNKEN,
             anchor=tk.W,
-            padding=10
+            padding=2  # Giảm padding
         )
         status_bar.grid(row=1, column=0, sticky="EW")
 
