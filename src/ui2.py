@@ -88,15 +88,35 @@ class MedicalControlApp:
 
         treatment_label = ttk.Label(control_frame, text="Chọn bài bấm huyệt:", font=("Arial", 16))
         treatment_label.grid(row=0, column=0, sticky="W", pady=(0, 5))
+        self.style = ttk.Style()
+        self.style.theme_use('clam')
+        self.style.configure("Large.TCombobox", 
+                font=("Arial", 20),   # Increase font size
+                padding=10)           # Add more padding
 
-        self.treatment_combo = ttk.Combobox(control_frame, state="readonly", values=(
-            "Sốt, co giật",
-            "Stress",
-            "Thoát vị đĩa đệm",
-            "Bổ thận tráng dương",
-            "Nâng cao sức khỏe"
-        ), style="Large.TCombobox", width=30)
-        self.treatment_combo.grid(row=1, column=0, sticky="EW", pady=(0, 10), ipadx=5, ipady=5)
+        # In the create_gui method, update the Combobox
+        self.treatment_combo = ttk.Combobox(
+            control_frame, 
+            state="readonly", 
+            values=[
+                "Sốt, co giật",
+                "Stress",
+                "Thoát vị đĩa đệm",
+                "Bổ thận tráng dương",
+                "Nâng cao sức khỏe"
+            ], 
+            style="Large.TCombobox", 
+            width=40,                 # Increase width
+            font=("Arial", 16)        # Explicitly set font size
+        )
+        self.treatment_combo.grid(
+            row=1, 
+            column=0, 
+            sticky="EW", 
+            pady=(0, 10), 
+            ipadx=10,                 # Increase internal x-padding
+            ipady=10                  # Increase internal y-padding
+        )
         self.treatment_combo.set("Chọn bài bấm huyệt")
 
         main_buttons_frame = ttk.LabelFrame(control_frame, text="Điều khiển chính", padding=2)
