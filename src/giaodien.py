@@ -8,6 +8,7 @@ from PIL import Image, ImageTk
 import threading
 import numpy as np
 import json
+from uart import UARTManager
 
 class MedicalControlApp:
     def __init__(self, window, window_title):
@@ -46,6 +47,10 @@ class MedicalControlApp:
         self.is_detecting = False
         self.detection_start_time = 0
 
+        self.uart = UARTManager(baudrate=115200)
+        if not self.uart.is_connected:
+            print("Cảnh báo: Không thể kết nối UART")
+            
         self.create_gui()
 
         self.window.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -248,13 +253,17 @@ class MedicalControlApp:
                 }
                 self.keypoints_data["baiBamHuyet"] = treatment_mapping.get(selected_treatment, 1)
                 
-                # In ra JSON
-                # print("\nKết quả nhận diện:")
-                # print(json.dumps(self.keypoints_data, indent=2))
-                # break
+                # Tạo và gửi dữ liệu qua UART
                 json_string = json.dumps(self.keypoints_data, indent=2)
                 final_string = f"*\n {json_string} #\n"
                 print(final_string)
+                if self.uart.is_connected:
+                    if self.uart.send_data(final_string):
+                        self.status_var.set("Đã gửi dữ liệu thành công")
+                    else:
+                        self.status_var.set("Lỗi khi gửi dữ liệu UART")
+                else:
+                    print("Không thể gửi dữ liệu: UART chưa được kết nối")
                 break
 
             ret_left, frame_left = self.cap_left.read()
@@ -266,11 +275,15 @@ class MedicalControlApp:
                 results_right = self.model(frame_right)
 
                 # Xử lý và hiển thị keypoints cho camera bên trái
-                annotated_frame_left = results_left[0].plot()
+                annotated_frame_left = results_left[0].plot(
+                    kpt_radius=12
+                )
                 self.best_frame_left = annotated_frame_left
 
                 # Xử lý và hiển thị keypoints cho camera bên phải
-                annotated_frame_right = results_right[0].plot()
+                annotated_frame_right = results_right[0].plot(
+                    kpt_radius=12
+                )
                 self.best_frame_right = annotated_frame_right
     
     def print_keypoints(self, frame):
@@ -454,7 +467,10 @@ class MedicalControlApp:
                 canvas.photo = photo
 
     def on_closing(self):
+        """Đóng ứng dụng và dọn dẹp"""
         self.is_detecting = False
+        if hasattr(self, 'uart'):
+            self.uart.close()
         if self.cap_left.isOpened():
             self.cap_left.release()
         if self.cap_right.isOpened():
@@ -462,11 +478,20 @@ class MedicalControlApp:
         self.window.destroy()
 
     def start_pressing(self):
+        """Gửi lệnh bắt đầu bấm huyệt"""
         self.status_var.set("Bắt đầu bấm huyệt...")
-        print("*\n Start #\n")
+        if self.uart.is_connected:
+            self.uart.send_data("*\n Start #\n")
+        else:
+            print("Không thể gửi lệnh: UART chưa được kết nối")
 
     def stop_machine(self):
+        """Gửi lệnh dừng máy"""
         self.status_var.set("Máy đã dừng.")
+        if self.uart.is_connected:
+            self.uart.send_data("*\n Stop #\n")
+        else:
+            print("Không thể gửi lệnh: UART chưa được kết nối")
 
     def start_medicine(self):
         self.status_var.set("Bật dẫn dược.")
