@@ -310,32 +310,60 @@ class MedicalControlApp:
     
     def process_keypoints(self, frame, side):
         """
-        Xử lý và lưu keypoints vào định dạng yêu cầu
+        Xử lý và lưu keypoints vào định dạng yêu cầu, với quy chuẩn tọa độ theo kích thước máy
         """
+        # Định nghĩa kích thước tối đa của máy (mm)
+        X_MAX = 120  # mm
+        Y_MAX = 250  # mm
+        
         results = self.model(frame)
         
         for r in results:
             if r.keypoints is not None:
-                keypoints = r.keypoints.xy.cpu().numpy()[0]  # shape: (6, 2) - chỉ có 6 keypoints
+                keypoints = r.keypoints.xy.cpu().numpy()[0]  # shape: (6, 2)
                 
-                # Điều chỉnh mapping cho phù hợp với 6 keypoints (0-5)
+                # Lấy kích thước frame để tính tỷ lệ chuyển đổi
+                frame_height, frame_width = frame.shape[:2]
+                
+                # Tính tỷ lệ chuyển đổi từ pixel sang mm
+                x_ratio = X_MAX / frame_width
+                y_ratio = Y_MAX / frame_height
+                
+                # Chuyển đổi tọa độ pixel sang mm và map với các huyệt
                 huyet_points = {
-                    "mauChiLyHoanhVan_left": (keypoints[0], keypoints[1]),  # Sử dụng keypoints 0,1
-                    "lyNoiDinh_left": (keypoints[1], keypoints[2]),         # Sử dụng keypoints 1,2
-                    "docAm_left": (keypoints[2], keypoints[3]),             # Sử dụng keypoints 2,3
-                    "dungTuyen_left": (keypoints[3], keypoints[4]),         # Sử dụng keypoints 3,4
-                    "tucTam_left": (keypoints[4], keypoints[5]),            # Sử dụng keypoints 4,5
-                    "thatMien_left": (keypoints[0], keypoints[5])           # Sử dụng keypoints 0,5
+                    "mauChiLyHoanhVan_left": (keypoints[0], keypoints[1]),
+                    "lyNoiDinh_left": (keypoints[1], keypoints[2]),
+                    "docAm_left": (keypoints[2], keypoints[3]),
+                    "dungTuyen_left": (keypoints[3], keypoints[4]),
+                    "tucTam_left": (keypoints[4], keypoints[5]),
+                    "thatMien_left": (keypoints[0], keypoints[5])
                 }
                 
-                # Tạo dữ liệu cho mỗi huyệt
+                # Tạo dữ liệu cho mỗi huyệt với tọa độ đã được quy chuẩn
                 for huyet_name, (point1, point2) in huyet_points.items():
+                    # Chuyển đổi tọa độ sang mm và làm tròn thành số nguyên
+                    x1_mm = int(round(float(point1[0]) * x_ratio))
+                    y1_mm = int(round(float(point1[1]) * y_ratio))
+                    x2_mm = int(round(float(point2[0]) * x_ratio))
+                    y2_mm = int(round(float(point2[1]) * y_ratio))
+                    
+                    # Đảm bảo tọa độ không vượt quá giới hạn
+                    x1_mm = min(max(0, x1_mm), X_MAX)
+                    y1_mm = min(max(0, y1_mm), Y_MAX)
+                    x2_mm = min(max(0, x2_mm), X_MAX)
+                    y2_mm = min(max(0, y2_mm), Y_MAX)
+                    
                     self.keypoints_data[huyet_name] = {
-                        "xLeft": int(point1[0]),
-                        "yLeft": int(point1[1]),
-                        "xRight": int(point2[0]),
-                        "yRight": int(point2[1])
+                        "xLeft": x1_mm,
+                        "yLeft": y1_mm,
+                        "xRight": x2_mm,
+                        "yRight": y2_mm
                     }
+                    
+                    # In thông tin debug (có thể xóa sau)
+                    print(f"Huyet {huyet_name}:")
+                    print(f"  Original (px): ({point1[0]:.1f}, {point1[1]:.1f}) -> ({point2[0]:.1f}, {point2[1]:.1f})")
+                    print(f"  Converted (mm): ({x1_mm}, {y1_mm}) -> ({x2_mm}, {y2_mm})")
 
     def print_and_store_keypoints(self, frame, side):
         """
