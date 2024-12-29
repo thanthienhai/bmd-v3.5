@@ -254,7 +254,7 @@ class MedicalControlApp:
 
     def detection_thread(self):
         while self.is_detecting:
-            if time.time() - self.detection_start_time >= 1:
+            if time.time() - self.detection_start_time >= 5:
                 self.is_detecting = False
                 self.status_var.set("Đã hoàn thành nhận diện")
                 
