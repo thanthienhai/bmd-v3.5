@@ -36,9 +36,24 @@ class MedicalControlApp:
         self.model = YOLO('/home/ubuntu/Coding/swork/bmd-v3.5/models/best-640-100eps.pt')
         self.model.conf = 0.5
 
-        self.cap_left = cv2.VideoCapture('/home/ubuntu/Coding/swork/bmd-v3.5/video_test/1.mp4')
-        self.cap_right = cv2.VideoCapture('/home/ubuntu/Coding/swork/bmd-v3.5/video_test/2.mp4')
+        # Thiết lập camera với độ phân giải cao hơn
+        self.cap_left = cv2.VideoCapture(2)
+        self.cap_right = cv2.VideoCapture(4)
 
+        # Thiết lập độ phân giải cho camera
+        self.cap_left.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)  # Full HD width
+        self.cap_left.set(cv2.CAP_PROP_FRAME_HEIGHT, 720) # Full HD height
+        self.cap_right.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap_right.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
+        # In ra thông tin về kích thước thực tế của frame
+        ret_left, frame_left = self.cap_left.read()
+        ret_right, frame_right = self.cap_right.read()
+        
+        if ret_left and ret_right:
+            print(f"Camera trái: {frame_left.shape}")
+            print(f"Camera phải: {frame_right.shape}")
+        
         self.best_frame_left = None
         self.best_frame_right = None
         self.best_conf_left = 0
