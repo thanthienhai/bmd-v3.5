@@ -321,20 +321,11 @@ class MedicalControlApp:
         
         for r in results:
             if r.keypoints is not None and len(r.keypoints.xy) > 0:
-                keypoints = r.keypoints.xy.cpu().numpy()[0]  # shape: (6, 2)
+                keypoints = r.keypoints.xy.cpu().numpy()[0]
                 
                 # Kiểm tra xem có đủ keypoints không
                 if len(keypoints) == 0:
                     print(f"Không phát hiện được keypoints ở {side}")
-                    # Gán giá trị mặc định hoặc giá trị cuối cùng đã biết
-                    self.keypoints_data.update({
-                        f"mauChiLyHoanhVan_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
-                        f"lyNoiDinh_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
-                        f"docAm_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
-                        f"dungTuyen_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
-                        f"tucTam_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
-                        f"thatMien_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0}
-                    })
                     return
                 
                 # Lấy kích thước frame để tính tỷ lệ chuyển đổi
@@ -345,55 +336,70 @@ class MedicalControlApp:
                 y_ratio = Y_MAX / frame_height
                 
                 try:
-                    # Chuyển đổi tọa độ pixel sang mm và map với các huyệt
-                    huyet_points = {
-                        f"mauChiLyHoanhVan_{side}": (keypoints[0], keypoints[1]),
-                        f"lyNoiDinh_{side}": (keypoints[1], keypoints[2]),
-                        f"docAm_{side}": (keypoints[2], keypoints[3]),
-                        f"dungTuyen_{side}": (keypoints[3], keypoints[4]),
-                        f"tucTam_{side}": (keypoints[4], keypoints[5]),
-                        f"thatMien_{side}": (keypoints[0], keypoints[5])
-                    }
+                    # Danh sách các huyệt cần xử lý
+                    huyet_names = [
+                        "mauChiLyHoanhVan",
+                        "lyNoiDinh",
+                        "docAm",
+                        "dungTuyen",
+                        "tucTam",
+                        "thatMien"
+                    ]
                     
-                    # Tạo dữ liệu cho mỗi huyệt với tọa độ đã được quy chuẩn
-                    for huyet_name, (point1, point2) in huyet_points.items():
+                    # Xử lý từng cặp điểm cho mỗi huyệt
+                    for i in range(len(huyet_names)):
+                        huyet_name = f"{huyet_names[i]}_left"  # Thêm _left vào tên huyệt
+                        
                         try:
+                            # Lấy tọa độ từ keypoints
+                            point1 = keypoints[i]
+                            point2 = keypoints[(i + 1) % len(keypoints)]
+                            
                             # Chuyển đổi tọa độ sang mm và làm tròn thành số nguyên
-                            x1_mm = int(round(float(point1[0]) * x_ratio))
-                            y1_mm = int(round(float(point1[1]) * y_ratio))
-                            x2_mm = int(round(float(point2[0]) * x_ratio))
-                            y2_mm = int(round(float(point2[1]) * y_ratio))
+                            if side == "left":
+                                x_left = int(round(float(point1[0]) * x_ratio))
+                                y_left = int(round(float(point1[1]) * y_ratio))
+                                x_right = int(round(float(point2[0]) * x_ratio))
+                                y_right = int(round(float(point2[1]) * y_ratio))
+                            else:  # side == "right"
+                                # Cập nhật giá trị xRight, yRight cho huyệt tương ứng
+                                if huyet_name in self.keypoints_data:
+                                    self.keypoints_data[huyet_name].update({
+                                        "xRight": int(round(float(point1[0]) * x_ratio)),
+                                        "yRight": int(round(float(point1[1]) * y_ratio))
+                                    })
+                                    continue
+                                else:
+                                    # Nếu chưa có dữ liệu từ camera trái, tạo mới với giá trị mặc định
+                                    x_left = 0
+                                    y_left = 0
+                                    x_right = int(round(float(point1[0]) * x_ratio))
+                                    y_right = int(round(float(point1[1]) * y_ratio))
                             
                             # Đảm bảo tọa độ không vượt quá giới hạn
-                            x1_mm = min(max(0, x1_mm), X_MAX)
-                            y1_mm = min(max(0, y1_mm), Y_MAX)
-                            x2_mm = min(max(0, x2_mm), X_MAX)
-                            y2_mm = min(max(0, y2_mm), Y_MAX)
+                            x_left = min(max(0, x_left), X_MAX)
+                            y_left = min(max(0, y_left), Y_MAX)
+                            x_right = min(max(0, x_right), X_MAX)
+                            y_right = min(max(0, y_right), Y_MAX)
                             
-                            self.keypoints_data[huyet_name] = {
-                                "xLeft": x1_mm,
-                                "yLeft": y1_mm,
-                                "xRight": x2_mm,
-                                "yRight": y2_mm
-                            }
+                            # Lưu hoặc cập nhật dữ liệu
+                            if side == "left" or huyet_name not in self.keypoints_data:
+                                self.keypoints_data[huyet_name] = {
+                                    "xLeft": x_left,
+                                    "yLeft": y_left,
+                                    "xRight": x_right,
+                                    "yRight": y_right
+                                }
                             
                         except (IndexError, ValueError) as e:
                             print(f"Lỗi xử lý huyệt {huyet_name}: {str(e)}")
-                            self.keypoints_data[huyet_name] = {
-                                "xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0
-                            }
-                    
-                except IndexError as e:
+                            if huyet_name not in self.keypoints_data:
+                                self.keypoints_data[huyet_name] = {
+                                    "xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0
+                                }
+                
+                except Exception as e:
                     print(f"Lỗi khi xử lý keypoints: {str(e)}")
-                    # Gán giá trị mặc định khi có lỗi
-                    self.keypoints_data.update({
-                        f"mauChiLyHoanhVan_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
-                        f"lyNoiDinh_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
-                        f"docAm_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
-                        f"dungTuyen_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
-                        f"tucTam_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
-                        f"thatMien_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0}
-                    })
 
     def print_and_store_keypoints(self, frame, side):
         """
