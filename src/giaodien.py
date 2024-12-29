@@ -101,29 +101,38 @@ class MedicalControlApp:
                 font=("Arial", 20),
                 padding=10)
 
-        self.treatment_combo = ttk.Combobox(
-            control_frame,
-            state="readonly",
-            values=[
-                "Sốt, co giật",
-                "Stress",
-                "Thoát vị đĩa đệm",
-                "Bổ thận tráng dương",
-                "Nâng cao sức khỏe"
-            ],
-            style="Large.TCombobox",
-            width=40,
-            font=("Arial", 16)
-        )
-        self.treatment_combo.grid(
-            row=1,
-            column=0,
-            sticky="EW",
-            pady=(0, 10),
-            ipadx=10,
-            ipady=10
-        )
-        self.treatment_combo.set("Chọn bài bấm huyệt")
+        # Tạo frame riêng cho radio buttons
+        radio_frame = ttk.Frame(control_frame)
+        radio_frame.grid(row=1, column=0, sticky="EW", pady=(0, 10))
+
+        # Biến để lưu giá trị radio button
+        self.treatment_var = tk.StringVar(value="1")  # Giá trị mặc định
+
+        # Style cho radio buttons
+        style = ttk.Style()
+        style.configure("Custom.TRadiobutton", 
+                       font=("Arial", 14),
+                       padding=5)
+
+        # Danh sách các bài bấm huyệt và giá trị tương ứng
+        treatments = [
+            ("Sốt, co giật", "1"),
+            ("Stress", "2"),
+            ("Thoát vị đĩa đệm", "3"),
+            ("Bổ thận tráng dương", "4"),
+            ("Nâng cao sức khỏe", "5")
+        ]
+
+        # Tạo radio buttons
+        for i, (text, value) in enumerate(treatments):
+            radio = ttk.Radiobutton(
+                radio_frame,
+                text=text,
+                value=value,
+                variable=self.treatment_var,
+                style="Custom.TRadiobutton"
+            )
+            radio.grid(row=i, column=0, sticky="W", padx=20, pady=2)
 
         main_buttons_frame = ttk.LabelFrame(control_frame, text="Điều khiển chính", padding=2)
         main_buttons_frame.grid(row=2, column=0, sticky="EW", pady=5)
@@ -233,30 +242,22 @@ class MedicalControlApp:
             if time.time() - self.detection_start_time >= 1:
                 self.is_detecting = False
                 self.status_var.set("Đã hoàn thành nhận diện")
-
+                
                 self.keypoints_data = {}
-            
-                # Xử lý frame tốt nhất của cả hai camera
+                
                 if self.best_frame_left is not None:
                     self.process_keypoints(self.best_frame_left, "left")
                 if self.best_frame_right is not None:
                     self.process_keypoints(self.best_frame_right, "right")
                     
-                # Thêm baiBamHuyet vào dữ liệu
-                selected_treatment = self.treatment_combo.get()
-                treatment_mapping = {
-                    "Sốt, co giật": 1,
-                    "Stress": 2,
-                    "Thoát vị đĩa đệm": 3,
-                    "Bổ thận tráng dương": 4,
-                    "Nâng cao sức khỏe": 5
-                }
-                self.keypoints_data["baiBamHuyet"] = treatment_mapping.get(selected_treatment, 1)
+                # Lấy giá trị trực tiếp từ radio button
+                self.keypoints_data["baiBamHuyet"] = int(self.treatment_var.get())
                 
                 # Tạo và gửi dữ liệu qua UART
                 json_string = json.dumps(self.keypoints_data, indent=2)
                 final_string = f"*\n {json_string} #\n"
                 print(final_string)
+                
                 if self.uart.is_connected:
                     if self.uart.send_data(final_string):
                         self.status_var.set("Đã gửi dữ liệu thành công")
@@ -319,8 +320,22 @@ class MedicalControlApp:
         results = self.model(frame)
         
         for r in results:
-            if r.keypoints is not None:
+            if r.keypoints is not None and len(r.keypoints.xy) > 0:
                 keypoints = r.keypoints.xy.cpu().numpy()[0]  # shape: (6, 2)
+                
+                # Kiểm tra xem có đủ keypoints không
+                if len(keypoints) == 0:
+                    print(f"Không phát hiện được keypoints ở {side}")
+                    # Gán giá trị mặc định hoặc giá trị cuối cùng đã biết
+                    self.keypoints_data.update({
+                        f"mauChiLyHoanhVan_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                        f"lyNoiDinh_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                        f"docAm_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                        f"dungTuyen_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                        f"tucTam_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                        f"thatMien_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0}
+                    })
+                    return
                 
                 # Lấy kích thước frame để tính tỷ lệ chuyển đổi
                 frame_height, frame_width = frame.shape[:2]
@@ -329,41 +344,56 @@ class MedicalControlApp:
                 x_ratio = X_MAX / frame_width
                 y_ratio = Y_MAX / frame_height
                 
-                # Chuyển đổi tọa độ pixel sang mm và map với các huyệt
-                huyet_points = {
-                    "mauChiLyHoanhVan_left": (keypoints[0], keypoints[1]),
-                    "lyNoiDinh_left": (keypoints[1], keypoints[2]),
-                    "docAm_left": (keypoints[2], keypoints[3]),
-                    "dungTuyen_left": (keypoints[3], keypoints[4]),
-                    "tucTam_left": (keypoints[4], keypoints[5]),
-                    "thatMien_left": (keypoints[0], keypoints[5])
-                }
-                
-                # Tạo dữ liệu cho mỗi huyệt với tọa độ đã được quy chuẩn
-                for huyet_name, (point1, point2) in huyet_points.items():
-                    # Chuyển đổi tọa độ sang mm và làm tròn thành số nguyên
-                    x1_mm = int(round(float(point1[0]) * x_ratio))
-                    y1_mm = int(round(float(point1[1]) * y_ratio))
-                    x2_mm = int(round(float(point2[0]) * x_ratio))
-                    y2_mm = int(round(float(point2[1]) * y_ratio))
-                    
-                    # Đảm bảo tọa độ không vượt quá giới hạn
-                    x1_mm = min(max(0, x1_mm), X_MAX)
-                    y1_mm = min(max(0, y1_mm), Y_MAX)
-                    x2_mm = min(max(0, x2_mm), X_MAX)
-                    y2_mm = min(max(0, y2_mm), Y_MAX)
-                    
-                    self.keypoints_data[huyet_name] = {
-                        "xLeft": x1_mm,
-                        "yLeft": y1_mm,
-                        "xRight": x2_mm,
-                        "yRight": y2_mm
+                try:
+                    # Chuyển đổi tọa độ pixel sang mm và map với các huyệt
+                    huyet_points = {
+                        f"mauChiLyHoanhVan_{side}": (keypoints[0], keypoints[1]),
+                        f"lyNoiDinh_{side}": (keypoints[1], keypoints[2]),
+                        f"docAm_{side}": (keypoints[2], keypoints[3]),
+                        f"dungTuyen_{side}": (keypoints[3], keypoints[4]),
+                        f"tucTam_{side}": (keypoints[4], keypoints[5]),
+                        f"thatMien_{side}": (keypoints[0], keypoints[5])
                     }
                     
-                    # In thông tin debug (có thể xóa sau)
-                    print(f"Huyet {huyet_name}:")
-                    print(f"  Original (px): ({point1[0]:.1f}, {point1[1]:.1f}) -> ({point2[0]:.1f}, {point2[1]:.1f})")
-                    print(f"  Converted (mm): ({x1_mm}, {y1_mm}) -> ({x2_mm}, {y2_mm})")
+                    # Tạo dữ liệu cho mỗi huyệt với tọa độ đã được quy chuẩn
+                    for huyet_name, (point1, point2) in huyet_points.items():
+                        try:
+                            # Chuyển đổi tọa độ sang mm và làm tròn thành số nguyên
+                            x1_mm = int(round(float(point1[0]) * x_ratio))
+                            y1_mm = int(round(float(point1[1]) * y_ratio))
+                            x2_mm = int(round(float(point2[0]) * x_ratio))
+                            y2_mm = int(round(float(point2[1]) * y_ratio))
+                            
+                            # Đảm bảo tọa độ không vượt quá giới hạn
+                            x1_mm = min(max(0, x1_mm), X_MAX)
+                            y1_mm = min(max(0, y1_mm), Y_MAX)
+                            x2_mm = min(max(0, x2_mm), X_MAX)
+                            y2_mm = min(max(0, y2_mm), Y_MAX)
+                            
+                            self.keypoints_data[huyet_name] = {
+                                "xLeft": x1_mm,
+                                "yLeft": y1_mm,
+                                "xRight": x2_mm,
+                                "yRight": y2_mm
+                            }
+                            
+                        except (IndexError, ValueError) as e:
+                            print(f"Lỗi xử lý huyệt {huyet_name}: {str(e)}")
+                            self.keypoints_data[huyet_name] = {
+                                "xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0
+                            }
+                    
+                except IndexError as e:
+                    print(f"Lỗi khi xử lý keypoints: {str(e)}")
+                    # Gán giá trị mặc định khi có lỗi
+                    self.keypoints_data.update({
+                        f"mauChiLyHoanhVan_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                        f"lyNoiDinh_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                        f"docAm_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                        f"dungTuyen_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                        f"tucTam_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                        f"thatMien_{side}": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0}
+                    })
 
     def print_and_store_keypoints(self, frame, side):
         """
