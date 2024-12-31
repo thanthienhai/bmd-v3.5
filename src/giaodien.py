@@ -33,12 +33,12 @@ class MedicalControlApp:
         style.configure("Large.TCombobox", font=self.combo_font)
 
         # Model YOLO-pose
-        self.model = YOLO('/home/ubuntu/Coding/swork/bmd-v3.5/models/best-640-100eps.pt')
+        self.model = YOLO('/home/ubuntu/Coding/swork/bmd-v3.5/models/last.pt')
         self.model.conf = 0.5
 
         # Thiết lập camera với độ phân giải cao hơn
         self.cap_left = cv2.VideoCapture(2)
-        self.cap_right = cv2.VideoCapture(4)
+        self.cap_right = cv2.VideoCapture(3)
 
         # Thiết lập độ phân giải cho camera
         self.cap_left.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)  # Full HD width
