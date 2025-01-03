@@ -62,6 +62,9 @@ class PointCreator:
                 print("Không thể đọc frame từ camera")
                 break
 
+            # Lấy kích thước frame
+            frame_height, frame_width = frame.shape[:2]
+            
             # Lưu frame hiện tại để sử dụng trong callback
             self.current_frame = frame.copy()
             
@@ -71,6 +74,10 @@ class PointCreator:
             # Hiển thị thông tin kích thước thực tế
             cv2.putText(frame, f"Kich thuoc thuc: {self.REAL_WIDTH:.1f}mm x {self.REAL_HEIGHT:.1f}mm", 
                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            
+            # Hiển thị độ phân giải frame
+            cv2.putText(frame, f"Do phan giai frame: {frame_width} x {frame_height}", 
+                       (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
             
             # Hiển thị frame
             cv2.imshow('Create Points', frame)

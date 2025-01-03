@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 import cv2
-import torch
 from ultralytics import YOLO
 import time
 from PIL import Image, ImageTk
@@ -33,16 +32,20 @@ class MedicalControlApp:
         style.configure("Large.TCombobox", font=self.combo_font)
 
         # Model YOLO-pose
-        self.model = YOLO('/home/ubuntu/Coding/swork/bmd-v3.5/models/last.pt')
+        # self.model = YOLO('/home/ubuntu/Coding/swork/bmd-v3.5/models/last.pt')
+        # self.model = YOLO('/home/ubuntu/Coding/swork/bmd-v3.5/models/best-1-1-24.pt')
+        self.model = YOLO('/home/ubuntu/Coding/swork/bmd-v3.5/models/best-v9.pt')
         self.model.conf = 0.5
 
         # Thiết lập camera với độ phân giải cao hơn
-        self.cap_left = cv2.VideoCapture(2)
-        self.cap_right = cv2.VideoCapture(3)
+        self.cap_left = cv2.VideoCapture(4)
+        self.cap_right = cv2.VideoCapture(2)
+        # self.cap_left = cv2.VideoCapture('/home/ubuntu/Coding/swork/bmd-v3.5/output1.avi')
+        # self.cap_right = cv2.VideoCapture('/home/ubuntu/Coding/swork/bmd-v3.5/output1.avi')
 
         # Thiết lập độ phân giải cho camera
-        self.cap_left.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)  # Full HD width
-        self.cap_left.set(cv2.CAP_PROP_FRAME_HEIGHT, 720) # Full HD height
+        self.cap_left.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap_left.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         self.cap_right.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         self.cap_right.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
@@ -258,19 +261,121 @@ class MedicalControlApp:
                 self.is_detecting = False
                 self.status_var.set("Đã hoàn thành nhận diện")
                 
-                self.keypoints_data = {}
-                
+                # Khởi tạo dictionary cho JSON
+                keypoints_data = {
+                    "docAm": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                    "lyNoiDinh": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                    "mauChiLyHoanhVan": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                    "dungTuyen": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                    "tucTam": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0},
+                    "thatMien": {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0}
+                }
+
+                # Xử lý frame trái
                 if self.best_frame_left is not None:
-                    self.process_keypoints(self.best_frame_left, "left")
+                    results = self.model(self.best_frame_left)
+                    if len(results) > 0 and results[0].keypoints is not None:
+                        points = results[0].keypoints[0].data[0].cpu().numpy()
+                        
+                        # Xử lý từng điểm riêng biệt cho chân trái
+                        # Đốc âm (index 0)
+                        x, y = int(points[0][0]), int(points[0][1])
+                        machine_x = round((1226 - x) * (250 / 1146))
+                        machine_y = round((622 - y) * (120 / 571))
+                        keypoints_data["docAm"]["xLeft"] = max(0, min(250, machine_x))
+                        keypoints_data["docAm"]["yLeft"] = max(0, min(120, machine_y))
+
+                        # Lý nội đình (index 1)
+                        x, y = int(points[1][0]), int(points[1][1])
+                        machine_x = round((1226 - x) * (250 / 1146))
+                        machine_y = round((622 - y) * (120 / 571))
+                        keypoints_data["lyNoiDinh"]["xLeft"] = max(0, min(250, machine_x))
+                        keypoints_data["lyNoiDinh"]["yLeft"] = max(0, min(120, machine_y))
+
+                        # Mẫu chi lý hoành vận (index 2)
+                        x, y = int(points[2][0]), int(points[2][1])
+                        machine_x = round((1226 - x) * (250 / 1146))
+                        machine_y = round((622 - y) * (120 / 571))
+                        keypoints_data["mauChiLyHoanhVan"]["xLeft"] = max(0, min(250, machine_x))
+                        keypoints_data["mauChiLyHoanhVan"]["yLeft"] = max(0, min(120, machine_y))
+
+                        # Dũng tuyền (index 3)
+                        x, y = int(points[3][0]), int(points[3][1])
+                        machine_x = round((1226 - x) * (250 / 1146))
+                        machine_y = round((622 - y) * (120 / 571))
+                        keypoints_data["dungTuyen"]["xLeft"] = max(0, min(250, machine_x))
+                        keypoints_data["dungTuyen"]["yLeft"] = max(0, min(120, machine_y))
+
+                        # Túc tam lý (index 4)
+                        x, y = int(points[4][0]), int(points[4][1])
+                        machine_x = round((1226 - x) * (250 / 1146))
+                        machine_y = round((622 - y) * (120 / 571))
+                        keypoints_data["tucTam"]["xLeft"] = max(0, min(250, machine_x))
+                        keypoints_data["tucTam"]["yLeft"] = max(0, min(120, machine_y))
+
+                        # Thất miên (index 5)
+                        x, y = int(points[5][0]), int(points[5][1])
+                        machine_x = round((1226 - x) * (250 / 1146))
+                        machine_y = round((622 - y) * (120 / 571))
+                        keypoints_data["thatMien"]["xLeft"] = max(0, min(250, machine_x))
+                        keypoints_data["thatMien"]["yLeft"] = max(0, min(120, machine_y))
+
+                # Xử lý frame phải
                 if self.best_frame_right is not None:
-                    self.process_keypoints(self.best_frame_right, "right")
-                    
-                # Lấy giá trị trực tiếp từ radio button
-                self.keypoints_data["baiBamHuyet"] = int(self.treatment_var.get())
-                
-                # Tạo và gửi dữ liệu qua UART
-                json_string = json.dumps(self.keypoints_data, indent=2)
-                final_string = f"*\n {json_string} #\n"
+                    results = self.model(self.best_frame_right)
+                    if len(results) > 0 and results[0].keypoints is not None:
+                        points = results[0].keypoints[0].data[0].cpu().numpy()
+                        
+                        # Xử lý từng điểm riêng biệt cho chân phải
+                        # Đốc âm (index 0)
+                        x, y = int(points[0][0]), int(points[0][1])
+                        machine_x = round((1226 - x) * (250 / 1146))
+                        machine_y = round((622 - y) * (120 / 571))
+                        keypoints_data["docAm"]["xRight"] = max(0, min(250, machine_x))
+                        keypoints_data["docAm"]["yRight"] = max(0, min(120, machine_y))
+
+                        # Lý nội đình (index 1)
+                        x, y = int(points[1][0]), int(points[1][1])
+                        machine_x = round((1226 - x) * (250 / 1146))
+                        machine_y = round((622 - y) * (120 / 571))
+                        keypoints_data["lyNoiDinh"]["xRight"] = max(0, min(250, machine_x))
+                        keypoints_data["lyNoiDinh"]["yRight"] = max(0, min(120, machine_y))
+
+                        # Mẫu chi lý hoành vận (index 2)
+                        x, y = int(points[2][0]), int(points[2][1])
+                        machine_x = round((1226 - x) * (250 / 1146))
+                        machine_y = round((622 - y) * (120 / 571))
+                        keypoints_data["mauChiLyHoanhVan"]["xRight"] = max(0, min(250, machine_x))
+                        keypoints_data["mauChiLyHoanhVan"]["yRight"] = max(0, min(120, machine_y))
+
+                        # Dũng tuyền (index 3)
+                        x, y = int(points[3][0]), int(points[3][1])
+                        machine_x = round((1226 - x) * (250 / 1146))
+                        machine_y = round((622 - y) * (120 / 571))
+                        keypoints_data["dungTuyen"]["xRight"] = max(0, min(250, machine_x))
+                        keypoints_data["dungTuyen"]["yRight"] = max(0, min(120, machine_y))
+
+                        # Túc tam lý (index 4)
+                        x, y = int(points[4][0]), int(points[4][1])
+                        machine_x = round((1226 - x) * (250 / 1146))
+                        machine_y = round((622 - y) * (120 / 571))
+                        keypoints_data["tucTam"]["xRight"] = max(0, min(250, machine_x))
+                        keypoints_data["tucTam"]["yRight"] = max(0, min(120, machine_y))
+
+                        # Thất miên (index 5)
+                        x, y = int(points[5][0]), int(points[5][1])
+                        machine_x = round((1226 - x) * (250 / 1146))
+                        machine_y = round((622 - y) * (120 / 571))
+                        keypoints_data["thatMien"]["xRight"] = max(0, min(250, machine_x))
+                        keypoints_data["thatMien"]["yRight"] = max(0, min(120, machine_y))
+
+                # Thêm bài bấm huyệt được chọn vào keypoints_data
+                selected_treatment = self.treatment_var.get()
+                keypoints_data["baiBamHuyet"] = int(selected_treatment)
+
+                # Tạo chuỗi JSON và gửi đi
+                json_string = json.dumps(keypoints_data, indent=2)
+                final_string = f"*\n{json_string}\n#\n"
                 print(final_string)
                 
                 if self.uart.is_connected:
@@ -318,103 +423,200 @@ class MedicalControlApp:
         
         for r in results:
             if r.keypoints is not None:
-                keypoints = r.keypoints.xy.cpu().numpy()[0]  # Lấy keypoints từ kết quả
+                keypoints = r.keypoints.xy.cpu().numpy()[0]
                 print("\nTọa độ các điểm:")
                 for i, point in enumerate(keypoints):
                     point_name = keypoint_names.get(i, f"Điểm {i}")
                     print(f"{point_name}: (x: {point[0]:.2f}, y: {point[1]:.2f})")
     
+    def draw_machine_grid(self, frame, is_right_foot=False):
+        """
+        Vẽ lưới tọa độ máy với khoảng cách 10mm
+        Gốc tọa độ (0,0):
+        - Chân trái: góc phải trên, X tăng từ phải sang trái
+        - Chân phải: góc phải dưới, X tăng từ phải sang trái
+        """
+        # Tọa độ crop và kích thước
+        x_start = 80  # Điểm bắt đầu X (trái)
+        y_start = 51  # Điểm bắt đầu Y (trên)
+        x_end = 1226  # Điểm kết thúc X (phải)
+        y_end = 622   # Điểm kết thúc Y (dưới)
+
+        # Vẽ khung viền khu vực
+        cv2.rectangle(frame,
+                     (x_start, y_start),
+                     (x_end, y_end),
+                     (0, 255, 0), 2)
+
+        width = x_end - x_start   # = 1146 pixels
+        height = y_end - y_start  # = 571 pixels
+
+        x_step = width / 25   # Chia 250mm thành 25 phần (mỗi 10mm)
+        y_step = height / 12  # Chia 120mm thành 12 phần (mỗi 10mm)
+
+        # Vẽ các đường dọc (theo trục x)
+        for i in range(26):  # 0 đến 250mm, mỗi 10mm
+            if is_right_foot:
+                # Chân phải: X tính từ phải sang trái
+                x = int(x_end - i * x_step)
+            else:
+                # Chân trái: X tính từ phải sang trái
+                x = int(x_end - i * x_step) # Giữ nguyên cách tính X
+
+            cv2.line(frame,
+                    (x, y_start),
+                    (x, y_end),
+                    (0, 255, 0), 1)
+
+            # Hiển thị số tọa độ x (mỗi 50mm)
+            if i % 5 == 0:
+                cv2.putText(frame, str(i * 10),
+                          (x - 10, y_start - 10), # Thay đổi vị trí Y
+                          cv2.FONT_HERSHEY_SIMPLEX,
+                          0.5, (0, 255, 0), 1)
+
+        # Vẽ các đường ngang (theo trục y)
+        for i in range(13):  # 0 đến 120mm, mỗi 10mm
+            y = int(y_start + i * y_step)  # Y tính từ trên xuống
+            cv2.line(frame,
+                    (x_start, y),
+                    (x_end, y),
+                    (0, 255, 0), 1)
+
+            # Hiển thị số tọa độ y
+            if i % 3 == 0:
+                if is_right_foot:
+                    # Chân phải: số ở bên phải
+                    cv2.putText(frame, str(i * 10),
+                              (x_end + 5, y + 5),
+                              cv2.FONT_HERSHEY_SIMPLEX,
+                              0.5, (0, 255, 0), 1)
+                else:
+                    # Chân trái: số ở bên phải
+                    cv2.putText(frame, str(i * 10),
+                              (x_end + 5, y + 5), # Thay đổi vị trí X
+                              cv2.FONT_HERSHEY_SIMPLEX,
+                              0.5, (0, 255, 0), 1)
+
+        # Vẽ gốc tọa độ (0,0)
+        if is_right_foot:
+            # Chân phải: (0,0) ở góc phải dưới
+            cv2.circle(frame, (x_end, y_end), 3, (0, 255, 0), -1)
+            cv2.putText(frame, "(0,0)",
+                      (x_end + 5, y_end + 15),
+                      cv2.FONT_HERSHEY_SIMPLEX,
+                      0.5, (0, 255, 0), 1)
+        else:
+            # Chân trái: (0,0) ở góc phải trên
+            cv2.circle(frame, (x_end, y_start), 3, (0, 255, 0), -1)
+            cv2.putText(frame, "(0,0)",
+                      (x_end + 5, y_start - 15),
+                      cv2.FONT_HERSHEY_SIMPLEX,
+                      0.5, (0, 255, 0), 1)
+
+        return frame
+
+    def get_machine_coordinates(self, pixel_x, pixel_y, is_right_foot=False):
+        """
+        Chuyển đổi tọa độ pixel sang tọa độ máy dựa trên lưới
+        """
+        # Tọa độ crop và kích thước
+        x_start = 80
+        x_end = 1226
+        y_start = 51
+        y_end = 622
+        crop_width = x_end - x_start
+        crop_height = y_end - y_start
+
+        # Kiểm tra điểm có nằm trong vùng crop
+        if (pixel_x < x_start or pixel_x > x_end or
+            pixel_y < y_start or pixel_y > y_end):
+            return None
+
+        if is_right_foot:
+            # Chân phải: X tính từ phải sang trái
+            machine_x = int(round((x_end - pixel_x) * 250 / crop_width))
+        else:
+            # Chân trái: X tính từ phải sang trái
+            machine_x = int(round((x_end - pixel_x) * 250 / crop_width)) # X tính từ phải sang trái
+
+        # Y tính từ trên xuống
+        machine_y = int(round((pixel_y - y_start) * 120 / crop_height))
+
+        return machine_x, machine_y
+
     def process_keypoints(self, frame, side):
         """
-        Xử lý và lưu keypoints vào định dạng yêu cầu, với quy chuẩn tọa độ theo kích thước máy
+        Xử lý và hiển thị keypoints từ YOLO
+        Gốc tọa độ (0,0):
+        - Chân trái: góc trái dưới, X tăng từ trái sang phải
+        - Chân phải: góc phải dưới, X tăng từ phải sang trái
         """
-        # Định nghĩa kích thước tối đa của máy (mm)
-        X_MAX = 120  # mm
-        Y_MAX = 250  # mm
-        
         results = self.model(frame)
         
-        for r in results:
-            if r.keypoints is not None and len(r.keypoints.xy) > 0:
-                keypoints = r.keypoints.xy.cpu().numpy()[0]
-                
-                # Kiểm tra xem có đủ keypoints không
-                if len(keypoints) == 0:
-                    print(f"Không phát hiện được keypoints ở {side}")
-                    return
-                
-                # Lấy kích thước frame để tính tỷ lệ chuyển đổi
-                frame_height, frame_width = frame.shape[:2]
-                
-                # Tính tỷ lệ chuyển đổi từ pixel sang mm
-                x_ratio = X_MAX / frame_width
-                y_ratio = Y_MAX / frame_height
-                
-                try:
-                    # Danh sách các huyệt cần xử lý
-                    huyet_names = [
-                        "mauChiLyHoanhVan",
-                        "lyNoiDinh",
-                        "docAm",
-                        "dungTuyen",
-                        "tucTam",
-                        "thatMien"
-                    ]
-                    
-                    # Xử lý từng cặp điểm cho mỗi huyệt
-                    for i in range(len(huyet_names)):
-                        huyet_name = f"{huyet_names[i]}_left"  # Thêm _left vào tên huyệt
+        if len(results) > 0:
+            result = results[0]
+            if result.keypoints is not None:
+                keypoints = result.keypoints[0]
+                points = keypoints.data[0].cpu().numpy()
+                confidences = keypoints.conf[0].cpu().numpy()
+
+                # Map tên huyệt
+                huyet_map = {
+                    0: "mauChiLyHoanhVan",
+                    1: "lyNoiDinh",
+                    2: "docAm",
+                    3: "dungTuyen",
+                    4: "tucTam",
+                    5: "thatMien"
+                }
+
+                for idx, (point, conf) in enumerate(zip(points, confidences)):
+                    if conf > 0.5 and idx in huyet_map:
+                        x, y = int(point[0]), int(point[1])
                         
-                        try:
-                            # Lấy tọa độ từ keypoints
-                            point1 = keypoints[i]
-                            point2 = keypoints[(i + 1) % len(keypoints)]
-                            
-                            # Chuyển đổi tọa độ sang mm và làm tròn thành số nguyên
-                            if side == "left":
-                                x_left = int(round(float(point1[0]) * x_ratio))
-                                y_left = int(round(float(point1[1]) * y_ratio))
-                                x_right = int(round(float(point2[0]) * x_ratio))
-                                y_right = int(round(float(point2[1]) * y_ratio))
-                            else:  # side == "right"
-                                # Cập nhật giá trị xRight, yRight cho huyệt tương ứng
-                                if huyet_name in self.keypoints_data:
-                                    self.keypoints_data[huyet_name].update({
-                                        "xRight": int(round(float(point1[0]) * x_ratio)),
-                                        "yRight": int(round(float(point1[1]) * y_ratio))
-                                    })
-                                    continue
-                                else:
-                                    # Nếu chưa có dữ liệu từ camera trái, tạo mới với giá trị mặc định
-                                    x_left = 0
-                                    y_left = 0
-                                    x_right = int(round(float(point1[0]) * x_ratio))
-                                    y_right = int(round(float(point1[1]) * y_ratio))
-                            
-                            # Đảm bảo tọa độ không vượt quá giới hạn
-                            x_left = min(max(0, x_left), X_MAX)
-                            y_left = min(max(0, y_left), Y_MAX)
-                            x_right = min(max(0, x_right), X_MAX)
-                            y_right = min(max(0, y_right), Y_MAX)
-                            
-                            # Lưu hoặc cập nhật dữ liệu
-                            if side == "left" or huyet_name not in self.keypoints_data:
-                                self.keypoints_data[huyet_name] = {
-                                    "xLeft": x_left,
-                                    "yLeft": y_left,
-                                    "xRight": x_right,
-                                    "yRight": y_right
-                                }
-                            
-                        except (IndexError, ValueError) as e:
-                            print(f"Lỗi xử lý huyệt {huyet_name}: {str(e)}")
-                            if huyet_name not in self.keypoints_data:
-                                self.keypoints_data[huyet_name] = {
-                                    "xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0
-                                }
-                
-                except Exception as e:
-                    print(f"Lỗi khi xử lý keypoints: {str(e)}")
+                        if side == "right":
+                            # Chân phải: X tính từ phải sang trái
+                            machine_y = round((1226 - x) * (250 / 1146))
+                            # Y tính từ trên xuống
+                            machine_x = round((y - 51) * (120 / 571))
+                        else:
+                            # Chân trái: X tính từ phải sang trái (đảo ngược)
+                            machine_y = round((1226 - x) * (250 / 1146))
+                            # Y tính từ trên xuống
+                            machine_x = round((y - 51) * (120 / 571))
+                        
+                        # Giới hạn tọa độ
+                        machine_x = max(0, min(250, machine_x))
+                        machine_y = max(0, min(120, machine_y))
+
+                        # Vẽ điểm YOLO
+                        cv2.circle(frame, (x, y), 5, (0, 0, 255), -1)
+                        
+                        # Hiển thị tên huyệt và tọa độ máy
+                        text = f"{huyet_map[idx]}: M({machine_x},{machine_y})"
+                        cv2.putText(frame, text,
+                                  (x + 10, y - 10),
+                                  cv2.FONT_HERSHEY_SIMPLEX,
+                                  0.5, (0, 255, 255), 1)
+
+        return frame
+
+    def display_coordinates(self, frame, yolo_coords, machine_coords, huyet_name, side):
+        """
+        Hiển thị tọa độ YOLO và tọa độ máy lên frame
+        """
+        # Tọa độ YOLO (pixel)
+        yolo_x, yolo_y = int(yolo_coords[0]), int(yolo_coords[1])
+        
+        # Tọa độ máy
+        machine_x, machine_y = machine_coords
+        
+        # Vẽ điểm và hiển thị thông tin
+        cv2.circle(frame, (yolo_x, yolo_y), 5, (0, 255, 0), -1)  # Vẽ điểm màu xanh lá
+        text = f"{huyet_name}_{side}: YOLO({yolo_x},{yolo_y}) -> Machine({machine_x},{machine_y})"
+        cv2.putText(frame, text, (yolo_x + 10, yolo_y - 10), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
     def print_and_store_keypoints(self, frame, side):
         """
@@ -460,13 +662,13 @@ class MedicalControlApp:
                     if len(x_coords) == 2 and len(y_coords) == 2:
                         self.keypoints_data[huyet_name] = {
                             "xLeft": x_coords[0],
-                            "yLeft": y_coords[0],
+                            "yLeft": 120 - y_coords[0],
                             "xRight": x_coords[1],
-                            "yRight": y_coords[1]
+                            "yRight": 120 - y_coords[1]
                         }
                         print(f"Huyet {huyet_name} ({side}):")
-                        print(f"  xLeft: {x_coords[0]}, yLeft: {y_coords[0]}")
-                        print(f"  xRight: {x_coords[1]}, yRight: {y_coords[1]}")
+                        print(f"  xLeft: {x_coords[0]}, yLeft: {120 - y_coords[0]}")
+                        print(f"  xRight: {x_coords[1]}, yRight: {120 - y_coords[1]}")
 
     def print_json_string(self):
         """
@@ -507,12 +709,23 @@ class MedicalControlApp:
         self.window.after(10, self.update_frames)
 
     def show_frame(self, frame, canvas):
+        """Hiển thị frame lên canvas"""
         if frame is not None:
+            # Vẽ lưới với tham số is_right_foot tùy theo canvas
+            frame = self.draw_machine_grid(
+                frame.copy(), 
+                is_right_foot=(canvas == self.canvas_right)
+            )
+            
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
             # Xoay frame 90 độ ngay tại đây khi hiển thị
             frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
 
             # Chuyển đổi màu từ BGR sang RGB
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            frame = cv2.flip(frame, 1)
 
             # Cập nhật kích thước canvas
             canvas.update_idletasks()
@@ -583,6 +796,206 @@ class MedicalControlApp:
 
     def stop_burn_medicine(self):
         self.status_var.set("Tắt đốt dược liệu.")
+
+    def get_keypoints_json(self):
+        """
+        Lấy thông tin các huyệt theo tọa độ máy và trả về dạng JSON
+        Format:
+        {
+            "mauChiLyHoanhVan": {"xLeft": val, "yLeft": val, "xRight": val, "yRight": val},
+            "lyNoiDinh": {"xLeft": val, "yLeft": val, "xRight": val, "yRight": val},
+            ...
+        }
+        """
+        # Khởi tạo dictionary cho JSON
+        keypoints_data = {
+            "mauChiLyHoanhVan": {"xLeft": None, "yLeft": None, "xRight": None, "yRight": None},
+            "lyNoiDinh": {"xLeft": None, "yLeft": None, "xRight": None, "yRight": None},
+            "docAm": {"xLeft": None, "yLeft": None, "xRight": None, "yRight": None},
+            "dungTuyen": {"xLeft": None, "yLeft": None, "xRight": None, "yRight": None},
+            "tucTam": {"xLeft": None, "yLeft": None, "xRight": None, "yRight": None},
+            "thatMien_left": {"xLeft": None, "yLeft": None, "xRight": None, "yRight": None}
+        }
+
+        # Hàm helper để tính tọa độ máy
+        def calculate_machine_coords(x, y, is_right_foot):
+            # Kích thước vùng crop (pixel)
+            crop_width = 1146  # 1226 - 80
+            crop_height = 571  # 622 - 51
+            
+            # Kích thước thực tế của máy (mm)
+            machine_width = 250  # mm
+            machine_height = 120  # mm
+            
+            # Tính tỷ lệ chuyển đổi
+            x_scale = machine_width / crop_width
+            y_scale = machine_height / crop_height
+            
+            # Tính toán tọa độ máy
+            if is_right_foot:
+                # Chân phải: X tính từ phải sang trái
+                machine_x = round((1226 - x) * x_scale)
+            else:
+                # Chân trái: X tính từ trái sang phải
+                machine_x = round((x - 80) * x_scale)
+            
+            # Y luôn tính từ dưới lên trên
+            machine_y = round((622 - y) * y_scale)
+            
+            # Giới hạn tọa độ trong phạm vi máy
+            machine_x = max(0, min(machine_width, machine_x))
+            machine_y = max(0, min(machine_height, machine_y))
+            
+            return machine_x, machine_y
+
+        # Xử lý frame trái
+        if self.best_frame_left is not None:
+            results = self.model(self.best_frame_left)
+            if len(results) > 0 and results[0].keypoints is not None:
+                keypoints = results[0].keypoints[0]
+                points = keypoints.data[0].cpu().numpy()
+                confidences = keypoints.conf[0].cpu().numpy()
+
+                # Chỉ xử lý các điểm có độ tin cậy > 0.5
+                for idx, (point, conf) in enumerate(zip(points, confidences)):
+                    if conf > 0.5:
+                        x, y = int(point[0]), int(point[1])
+                        machine_x, machine_y = calculate_machine_coords(x, y, False)
+
+                        # Gán tọa độ vào JSON theo index
+                        point_map = {
+                            0: "mauChiLyHoanhVan",
+                            1: "lyNoiDinh",
+                            2: "docAm",
+                            3: "dungTuyen",
+                            4: "tucTam",
+                            5: "thatMien_left"
+                        }
+
+                        if idx in point_map:
+                            keypoints_data[point_map[idx]]["xLeft"] = machine_x
+                            keypoints_data[point_map[idx]]["yLeft"] = machine_y
+
+        # Xử lý frame phải
+        if self.best_frame_right is not None:
+            results = self.model(self.best_frame_right)
+            if len(results) > 0 and results[0].keypoints is not None:
+                keypoints = results[0].keypoints[0]
+                points = keypoints.data[0].cpu().numpy()
+                confidences = keypoints.conf[0].cpu().numpy()
+
+                # Chỉ xử lý các điểm có độ tin cậy > 0.5
+                for idx, (point, conf) in enumerate(zip(points, confidences)):
+                    if conf > 0.5:
+                        x, y = int(point[0]), int(point[1])
+                        machine_x, machine_y = calculate_machine_coords(x, y, True)
+
+                        # Gán tọa độ vào JSON theo index
+                        point_map = {
+                            0: "mauChiLyHoanhVan",
+                            1: "lyNoiDinh",
+                            2: "docAm",
+                            3: "dungTuyen",
+                            4: "tucTam",
+                            5: "thatMien_left"
+                        }
+
+                        if idx in point_map:
+                            keypoints_data[point_map[idx]]["xRight"] = machine_x
+                            keypoints_data[point_map[idx]]["yRight"] = machine_y
+
+        # Chuyển None thành 0 trong JSON
+        for huyet in keypoints_data:
+            for coord in keypoints_data[huyet]:
+                if keypoints_data[huyet][coord] is None:
+                    keypoints_data[huyet][coord] = 0
+
+        return json.dumps(keypoints_data, indent=2)
+
+    def get_uart_string(self):
+        """
+        Tạo chuỗi UART từ tọa độ máy theo format:
+        "mauChiLyHoanhVan,xLeft,yLeft,xRight,yRight;lyNoiDinh,xLeft,yLeft,xRight,yRight;..."
+        """
+        # Khởi tạo danh sách các huyệt theo thứ tự
+        huyet_points = [
+            "mauChiLyHoanhVan",
+            "lyNoiDinh", 
+            "docAm",
+            "dungTuyen",
+            "tucTam",
+            "thatMien_left"
+        ]
+        
+        # Tính toán tọa độ máy cho từng điểm
+        coords = {huyet: {"xLeft": 0, "yLeft": 0, "xRight": 0, "yRight": 0} for huyet in huyet_points}
+        
+        # Hàm helper để tính tọa độ máy
+        def calculate_machine_coords(x, y, is_right_foot):
+            x_start = 80
+            x_end = 1226
+            y_start = 51
+            y_end = 622
+            crop_width = x_end - x_start
+            crop_height = y_end - y_start
+            x_scale = 250 / crop_width
+            y_scale = 120 / crop_height
+
+            if is_right_foot:
+                # Chân phải: X tính từ phải sang trái
+                machine_x = round((x_end - x) * x_scale)
+            else:
+                # Chân trái: X tính từ trái sang phải
+                machine_x = round((x - x_start) * x_scale)
+
+            # Y tính từ dưới lên trên
+            machine_y = round((y_end - y) * y_scale)
+
+            # Giới hạn tọa độ
+            machine_x = max(0, min(250, machine_x))
+            machine_y = max(0, min(120, machine_y))
+
+            return machine_x, machine_y
+
+        # Xử lý frame trái
+        if self.best_frame_left is not None:
+            results = self.model(self.best_frame_left)
+            if len(results) > 0 and results[0].keypoints is not None:
+                keypoints = results[0].keypoints[0]
+                points = keypoints.data[0].cpu().numpy()
+                confidences = keypoints.conf[0].cpu().numpy()
+
+                for idx, (point, conf) in enumerate(zip(points, confidences)):
+                    if conf > 0.5 and idx < len(huyet_points):
+                        x, y = int(point[0]), int(point[1])
+                        machine_x, machine_y = calculate_machine_coords(x, y, False)
+                        coords[huyet_points[idx]]["xLeft"] = machine_x
+                        coords[huyet_points[idx]]["yLeft"] = machine_y
+
+        # Xử lý frame phải
+        if self.best_frame_right is not None:
+            results = self.model(self.best_frame_right)
+            if len(results) > 0 and results[0].keypoints is not None:
+                keypoints = results[0].keypoints[0]
+                points = keypoints.data[0].cpu().numpy()
+                confidences = keypoints.conf[0].cpu().numpy()
+
+                for idx, (point, conf) in enumerate(zip(points, confidences)):
+                    if conf > 0.5 and idx < len(huyet_points):
+                        x, y = int(point[0]), int(point[1])
+                        machine_x, machine_y = calculate_machine_coords(x, y, True)
+                        coords[huyet_points[idx]]["xRight"] = machine_x
+                        coords[huyet_points[idx]]["yRight"] = machine_y
+
+        # Tạo chuỗi UART
+        uart_parts = []
+        for huyet in huyet_points:
+            c = coords[huyet]
+            uart_parts.append(f"{huyet},{c['xLeft']},{c['yLeft']},{c['xRight']},{c['yRight']}")
+        
+        uart_string = ";".join(uart_parts)
+        return uart_string
+    
 
 if __name__ == "__main__":
     root = tk.Tk()

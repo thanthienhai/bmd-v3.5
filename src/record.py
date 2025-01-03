@@ -7,7 +7,7 @@ class DualCameraRecorder:
     def __init__(self):
         # Khởi tạo camera với độ phân giải cao
         self.cap_left = cv2.VideoCapture(2)  # Camera trái
-        self.cap_right = cv2.VideoCapture(3)  # Camera phải
+        self.cap_right = cv2.VideoCapture(4)  # Camera phải
 
         # Thiết lập độ phân giải cho camera
         self.width = 1280
@@ -21,6 +21,46 @@ class DualCameraRecorder:
         self.save_dir = os.path.join(os.path.dirname(__file__), "frames")
         os.makedirs(self.save_dir, exist_ok=True)
 
+        # Thiết lập video writer
+        self.video_writer_left = None
+        self.video_writer_right = None
+        self.is_recording = False
+        self.fps = 30
+        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+
+    def start_recording(self):
+        """Bắt đầu ghi video"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        left_video_path = os.path.join(self.save_dir, f"left_{timestamp}.avi")
+        right_video_path = os.path.join(self.save_dir, f"right_{timestamp}.avi")
+        
+        self.video_writer_left = cv2.VideoWriter(
+            left_video_path, 
+            self.fourcc, 
+            self.fps, 
+            (self.height, self.width)  # Đảo ngược width và height do xoay frame
+        )
+        
+        self.video_writer_right = cv2.VideoWriter(
+            right_video_path, 
+            self.fourcc, 
+            self.fps, 
+            (self.height, self.width)
+        )
+        
+        self.is_recording = True
+        print(f"Bắt đầu ghi video: {left_video_path} và {right_video_path}")
+
+    def stop_recording(self):
+        """Dừng ghi video"""
+        if self.video_writer_left is not None:
+            self.video_writer_left.release()
+        if self.video_writer_right is not None:
+            self.video_writer_right.release()
+            
+        self.is_recording = False
+        print("Đã dừng ghi video")
+
     def capture_frames(self):
         """Chụp và hiển thị frame từ cả hai camera"""
         try:
@@ -33,6 +73,11 @@ class DualCameraRecorder:
                     frame_left = cv2.rotate(frame_left, cv2.ROTATE_90_CLOCKWISE)
                     frame_right = cv2.rotate(frame_right, cv2.ROTATE_90_CLOCKWISE)
 
+                    # Ghi video nếu đang recording
+                    if self.is_recording:
+                        self.video_writer_left.write(frame_left)
+                        self.video_writer_right.write(frame_right)
+
                     # Hiển thị frame
                     cv2.imshow('Camera trai', frame_left)
                     cv2.imshow('Camera phai', frame_right)
@@ -43,6 +88,12 @@ class DualCameraRecorder:
                     # Nhấn 's' để lưu ảnh
                     if key == ord('s'):
                         self.save_frames(frame_left, frame_right)
+                    # Nhấn 'r' để bắt đầu/dừng ghi video
+                    elif key == ord('r'):
+                        if self.is_recording:
+                            self.stop_recording()
+                        else:
+                            self.start_recording()
                     # Nhấn 'q' để thoát
                     elif key == ord('q'):
                         break
@@ -52,6 +103,7 @@ class DualCameraRecorder:
 
         finally:
             self.release()
+            self.stop_recording()  # Đảm bảo dừng ghi video khi thoát
 
     def save_frames(self, frame_left, frame_right):
         """Lưu frame từ cả hai camera"""
@@ -71,6 +123,7 @@ class DualCameraRecorder:
 
     def release(self):
         """Giải phóng tài nguyên"""
+        self.stop_recording()  # Đảm bảo dừng ghi video
         self.cap_left.release()
         self.cap_right.release()
         cv2.destroyAllWindows()
@@ -79,6 +132,7 @@ def main():
     recorder = DualCameraRecorder()
     print("Hướng dẫn:")
     print("- Nhấn 's' để lưu ảnh")
+    print("- Nhấn 'r' để bắt đầu/dừng ghi video")
     print("- Nhấn 'q' để thoát")
     recorder.capture_frames()
 
