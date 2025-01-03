@@ -166,3 +166,30 @@ models/
 video_test/
 
 *.avi
+# Images and videos
+*.jpg
+*.jpeg
+*.png
+*.avi
+*.mp4
+
+# Model files
+*.pt
+models/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.env/
+
+# IDE files
+.vscode/
+.idea/
+
+# Generated files
+*.json
